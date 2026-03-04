@@ -247,7 +247,11 @@ function SessionForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
           name="topic"
           value={formData.topic}
           onChange={onChange}
+
           placeholder="مثال : دروس لغة عربية لغير الناطقين باللغة العربية"
+
+          placeholder="مثال :  دروس لغة عربية لغير الناطقين باللغة العربية"
+
           className={`${INPUT_BASE} ${border("topic")}`}
         />
         <FieldError message={errors.topic} />
@@ -348,7 +352,11 @@ function SuccessMessage({ onReset }) {
       </div>
       <h2 className="mb-3 text-2xl font-bold text-emerald-950">تم تسجيل الحصة بنجاح!</h2>
       <p className="mb-8 text-slate-600">
+
         تم حفظ بيانات الحضور وتفاصيل الحصة بنجاح في سجل الطالب.
+
+        تم حفظ بيانات الحضور وتفاصيل الحلقة بنجاح في سجل الطالب.
+
       </p>
       <button
         onClick={onReset}
@@ -463,7 +471,11 @@ export default function ArabicNonNativePage() {
     if (!formData.student) errs.student = "الرجاء اختيار الطالب";
     if (!formData.date) errs.date = "الرجاء تحديد تاريخ الحصة";
     if (!formData.attendance) errs.attendance = "الرجاء تحديد حالة الحضور";
+
     if (!formData.topic) errs.topic = "الرجاء اختيار موضوع الحصة";
+
+    if (!formData.topic) errs.topic = "الرجاء اختيار موضوع الحلقة";
+
     if (formData.attendance === "حاضر") {
       if (!formData.minutes) errs.minutes = "الرجاء تحديد وقت الحصة";
       if (!formData.rating) errs.rating = "الرجاء اختيار تقييم الطالب";
