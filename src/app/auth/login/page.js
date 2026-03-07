@@ -5,6 +5,30 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [role, setRole] = useState("student");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Basic mock validation: check if empty or some arbitrary check
+    if (!email || !password) {
+      setError("الرجاء إدخال البريد الإلكتروني وكلمة المرور.");
+      return;
+    }
+
+    // Mock an invalid credentials scenario
+    // For demonstration, say if email doesn't end in @mashael.com it's invalid
+    if (email !== "demo@mashael.com" || password !== "12345678") {
+      setError("البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+      return;
+    }
+
+    // Success logical branch: normally you would redirect or set auth context here
+    setError("");
+    alert("تم تسجيل الدخول بنجاح!");
+  };
 
   return (
     <main className="site-container flex min-h-[calc(100vh-140px)] items-center justify-center py-10" dir="rtl">
@@ -19,7 +43,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           {/* Role Selection using beautiful radio buttons */}
           <div className="flex gap-4">
             <label className="relative flex-1 cursor-pointer">
@@ -80,8 +104,10 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              className="w-full rounded-xl border border-emerald-200 bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
+              className={`w-full rounded-xl border bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:ring-1 ${error ? "border-red-400 focus:border-red-500 focus:ring-red-300/40" : "border-emerald-200 focus:border-emerald-400 focus:ring-emerald-300/40"}`}
             />
           </div>
 
@@ -92,10 +118,18 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="********"
-              className="w-full rounded-xl border border-emerald-200 bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
+              className={`w-full rounded-xl border bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:ring-1 ${error ? "border-red-400 focus:border-red-500 focus:ring-red-300/40" : "border-emerald-200 focus:border-emerald-400 focus:ring-emerald-300/40"}`}
             />
           </div>
+
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+              {error}
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-3 text-sm">
             <label className="inline-flex items-center gap-2 text-slate-700">
