@@ -120,7 +120,6 @@ export default function LoginPage() {
               أنشئ حساباً جديداً
             </Link>
           </div>
-
         </form>
       </article>
     </main>
