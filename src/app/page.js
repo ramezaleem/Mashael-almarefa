@@ -159,7 +159,7 @@ function HeroSection() {
             منصة تعليمية تهدف لصناعة جيل يجيد لغته ويحفظ كتاب ربه ويواكب عصره.
           </p>
           <p className="mx-auto mb-10 max-w-3xl text-base leading-relaxed text-emerald-50/85 sm:text-lg">
-            موجّهة للأطفال والكبار، للعرب وغير العرب، وتشمل علوم اللغة العربية والمناهج الدراسية والقرآن وعلومه.
+            موجّهة للأطفال والكبار، من العرب وغير العرب، وتشمل علوم اللغة العربية والمناهج الدراسية والقرآن وعلومه.
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -188,23 +188,19 @@ function IdentitySection() {
       <div className="absolute left-0 top-0 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-200/45 blur-3xl" />
       <div className="site-container relative z-10">
         <div className="mb-12 text-center">
-          <span className="mb-4 inline-block rounded-full bg-emerald-100 px-5 py-2 text-sm font-bold text-emerald-700">هوية المنصة</span>
+          <span className="mb-4 inline-block rounded-full bg-emerald-100 px-5 py-2 text-sm font-bold text-emerald-700">شعارنا</span>
           <h2 className="text-3xl font-black text-emerald-950 sm:text-4xl" style={{ lineHeight: 1.4 }}>
             نُضيء العقول… ونبني جيل المستقبل
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <article className="modern-card card-hover rounded-3xl p-7 shadow-lg shadow-emerald-500/10">
-            <h3 className="mb-3 text-xl font-bold text-emerald-900">الاسم</h3>
-            <p className="text-slate-700">مشاعل المعرفة</p>
-          </article>
-          <article className="modern-card card-hover rounded-3xl p-7 shadow-lg shadow-emerald-500/10">
-            <h3 className="mb-3 text-xl font-bold text-emerald-900">الرسالة</h3>
+            <h3 className="mb-3 text-xl font-bold text-emerald-900">رسالتنا</h3>
             <p className="text-slate-700">تقديم تعليم عربي ممتع وتفاعلي وقيمي يجمع المناهج والمهارات العلمية في مكان واحد.</p>
           </article>
           <article className="modern-card card-hover rounded-3xl p-7 shadow-lg shadow-emerald-500/10">
-            <h3 className="mb-3 text-xl font-bold text-emerald-900">الرؤية</h3>
+            <h3 className="mb-3 text-xl font-bold text-emerald-900">رؤيتنا</h3>
             <p className="text-slate-700">أن يصبح المتعلم متقنًا للعربية والقرآن والمناهج بمنهجية ذكية وتقنية حديثة وقيم سامية.</p>
           </article>
         </div>
