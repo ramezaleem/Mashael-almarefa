@@ -1,4 +1,4 @@
-import PortalNavbar from "@/components/portal-navbar";
+import TeacherNavbar from "./teacher-navbar";
 
 const TEACHER_LINKS = [
   { label: "ركن القرآن", href: "/quran-and-sciences" },
@@ -9,7 +9,7 @@ const TEACHER_LINKS = [
 export default function TeacherLayout({ children }) {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#f8fbfb] via-[#f2f8f8] to-[#eef5f5]">
-      <PortalNavbar sectionTitle="بوابة المعلمين" links={TEACHER_LINKS} ctaLabel="الرئيسية" ctaHref="/" />
+      <TeacherNavbar sectionTitle="بوابة المعلمين" links={TEACHER_LINKS} />
       <div className="pt-24">{children}</div>
     </div>
   );
