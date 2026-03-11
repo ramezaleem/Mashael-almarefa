@@ -23,8 +23,8 @@ const TOPICS = [
 ];
 
 const NAV_LINKS = [
-  { label: "تسجيل حضور الطالب", href: "/egypt-gulf-curricula" },
-  { label: "الطلبة المسجلين", href: "/egypt-gulf-curricula/students" },
+  { label: "طلاب القسم", href: "/egypt-gulf-curricula/students" },
+  { label: "الملف الشخصي", href: "/teacher/dashboard" },
 ];
 
 const EMPTY_FORM = {

@@ -27,16 +27,20 @@ export function middleware(request) {
         return NextResponse.next();
     }
 
-    // 4. Determine path sections
-    const isStudentSectionPath =
-        pathname.startsWith('/quran-and-sciences/students') ||
-        pathname.startsWith('/arabic-non-native/students') ||
-        pathname.startsWith('/egypt-gulf-curricula/students');
-
-    const isTeacherSectionPath =
-        (pathname.startsWith('/quran-and-sciences') && !pathname.startsWith('/quran-and-sciences/students')) ||
-        (pathname.startsWith('/arabic-non-native') && !pathname.startsWith('/arabic-non-native/students')) ||
-        (pathname.startsWith('/egypt-gulf-curricula') && !pathname.startsWith('/egypt-gulf-curricula/students'));
+    // 4. Decode Session for course checking if available
+    let userCourse = "";
+    const sessionCookie = request.cookies.get('session');
+    if (sessionCookie) {
+        try {
+            const base64Str = sessionCookie.value;
+            const uriEncodedStr = atob(base64Str);
+            const jsonStr = decodeURIComponent(uriEncodedStr);
+            const sessionData = JSON.parse(jsonStr);
+            userCourse = sessionData.course || "";
+        } catch (e) {
+            // ignore
+        }
+    }
 
     // Admin-only explicit denial for non-admins for courses-center
     if (pathname.startsWith('/courses-center')) {
@@ -50,14 +54,38 @@ export function middleware(request) {
     // 5. Apply Restrictions based on role
 
     if (userRole === 'student') {
-        const isAllowedStudentRoute = pathname.startsWith('/student') || isStudentSectionPath;
+        let isAllowedStudentRoute = pathname.startsWith('/student');
+
+        // Allow only their matching teachers page
+        if (isAllowedStudentRoute && pathname.startsWith('/student/quran-teachers') && userCourse !== 'ركن القرآن') {
+            isAllowedStudentRoute = false;
+        }
+        if (isAllowedStudentRoute && pathname.startsWith('/student/arabic-teachers') && userCourse !== 'العربية لغير الناطقين') {
+            isAllowedStudentRoute = false;
+        }
+        if (isAllowedStudentRoute && pathname.startsWith('/student/curricula-teachers') && userCourse !== 'المناهج الدراسية') {
+            isAllowedStudentRoute = false;
+        }
+
         if (!isAllowedStudentRoute) {
             return NextResponse.redirect(new URL('/student/profile', request.url));
         }
     }
 
     if (userRole === 'teacher') {
-        const isAllowedTeacherRoute = pathname.startsWith('/teacher') || isTeacherSectionPath;
+        let isAllowedTeacherRoute = pathname.startsWith('/teacher');
+
+        // Teachers can also access their specific course's routes
+        if (!isAllowedTeacherRoute) {
+            if (userCourse === 'ركن القرآن' && pathname.startsWith('/quran-and-sciences')) {
+                isAllowedTeacherRoute = true;
+            } else if (userCourse === 'العربية لغير الناطقين' && pathname.startsWith('/arabic-non-native')) {
+                isAllowedTeacherRoute = true;
+            } else if (userCourse === 'المناهج الدراسية' && pathname.startsWith('/egypt-gulf-curricula')) {
+                isAllowedTeacherRoute = true;
+            }
+        }
+
         if (!isAllowedTeacherRoute) {
             return NextResponse.redirect(new URL('/teacher/dashboard', request.url));
         }

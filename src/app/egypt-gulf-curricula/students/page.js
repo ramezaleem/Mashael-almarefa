@@ -4,8 +4,8 @@ import Link from "next/link";
 import TeacherNavbar from "../../teacher/teacher-navbar";
 
 const NAV_LINKS = [
-    { label: "تسجيل حضور الطالب", href: "/egypt-gulf-curricula" },
-    { label: "الطلبة المسجلين", href: "/egypt-gulf-curricula/students" },
+    { label: "طلاب القسم", href: "/egypt-gulf-curricula/students" },
+    { label: "الملف الشخصي", href: "/teacher/dashboard" },
 ];
 
 const STUDENTS_DATA = [
