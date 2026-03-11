@@ -1,9 +1,8 @@
 import StudentNavbar from "./student-navbar";
 
 const STUDENT_LINKS = [
-  { label: "لوحة الطالب", href: "/student/dashboard" },
   { label: "الملف الشخصي", href: "/student/profile" },
-  { label: "مركز الدورات", href: "/courses-center" },
+  { label: "معلمي ركن القرآن", href: "/student/quran-teachers" },
 ];
 
 export default function StudentLayout({ children }) {

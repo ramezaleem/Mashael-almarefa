@@ -21,7 +21,10 @@ export function middleware(request) {
     }
 
     // Protect Teacher Routes
-    if (pathname.startsWith('/teacher')) {
+    const teacherRoutes = ['/teacher', '/quran-and-sciences', '/arabic-non-native', '/egypt-gulf-curricula'];
+    const isTeacherRoute = teacherRoutes.some(route => pathname.startsWith(route));
+
+    if (isTeacherRoute) {
         if (userRole !== 'teacher' && userRole !== 'admin') {
             return NextResponse.redirect(new URL('/auth/login', request.url));
         }
@@ -32,5 +35,12 @@ export function middleware(request) {
 
 export const config = {
     // Add all routes that need to be protected
-    matcher: ['/admin/:path*', '/student/:path*', '/teacher/:path*'],
+    matcher: [
+        '/admin/:path*',
+        '/student/:path*',
+        '/teacher/:path*',
+        '/quran-and-sciences/:path*',
+        '/arabic-non-native/:path*',
+        '/egypt-gulf-curricula/:path*'
+    ],
 };
