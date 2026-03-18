@@ -6,9 +6,9 @@ const TEACHER_STATS = [
 ];
 
 const UPCOMING_CLASSES = [
-    { student: "أحمد محمود", course: "ركن القرآن", time: "10:00 صباحاً" },
-    { student: "منى علي", course: "المناهج الدراسية", time: "01:00 مساءً" },
-    { student: "عمر خالد", course: "اللغة العربية", time: "05:30 مساءً" },
+    { student: "أحمد محمود", course: "ركن القرآن", time: "10:00 صباحاً", meetLink: "https://meet.google.com/new" },
+    { student: "منى علي", course: "المناهج الدراسية", time: "01:00 مساءً", meetLink: "https://meet.google.com/new" },
+    { student: "عمر خالد", course: "اللغة العربية", time: "05:30 مساءً", meetLink: "https://meet.google.com/new" },
 ];
 
 const LATEST_NOTIFICATIONS = [
@@ -21,11 +21,22 @@ export default function TeacherDashboardPage() {
     return (
         <main className="site-container py-10" dir="rtl">
             <section className="modern-card rounded-3xl border border-white/70 p-6 shadow-xl shadow-emerald-900/5 sm:p-8">
-                <p className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                    لوحة تحكم المعلم
-                </p>
-                <h1 className="mt-3 text-2xl font-black text-emerald-950 sm:text-3xl">مرحباً بك في لوحة تحكمك</h1>
-                <p className="mt-2 text-sm text-slate-600">يمكنك هنا متابعة حصصك القادمة، نشاطات طلابك، ومؤشرات أدائك كمعلم.</p>
+                <div className="flex items-center gap-5">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-2xl font-black text-white shadow-lg shadow-emerald-500/30 sm:h-20 sm:w-20 sm:text-3xl relative overflow-hidden group">
+                        <span className="group-hover:opacity-0 transition-opacity">م</span>
+                        <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="رفع صورة شخصية" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                            لوحة تحكم المعلم
+                        </p>
+                        <h1 className="mt-3 text-2xl font-black text-emerald-950 sm:text-3xl">مرحباً بك في لوحة تحكمك</h1>
+                        <p className="mt-2 text-sm text-slate-600">يمكنك هنا متابعة حصصك القادمة، نشاطات طلابك، ومؤشرات أدائك كمعلم.</p>
+                    </div>
+                </div>
             </section>
 
             <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -53,7 +64,10 @@ export default function TeacherDashboardPage() {
                                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         {cls.time}
                                     </span>
-                                    <button className="mt-2 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors">دخول للغرفة</button>
+                                    <a href={cls.meetLink || "https://meet.google.com/new"} target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors">
+                                        دخول لجوجل ميت
+                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    </a>
                                 </div>
                             </li>
                         ))}

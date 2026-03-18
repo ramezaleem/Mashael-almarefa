@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AuthButtons from "@/components/auth-buttons";
+import ServicesSection from "@/components/services-section";
 
 function SparkIcon({ className = "w-5 h-5" }) {
   return (
@@ -96,56 +97,7 @@ const audienceSegments = [
   },
 ];
 
-const platformSections = [
-  {
-    id: "quran-and-sciences",
-    title: "ركن القرآن الكريم وعلومه",
-    items: [
-      "تحفيظ تفاعلي بالصوت والصورة",
-      "تقسيم حسب العمر والمستوى",
-      "اختبارات حفظ أسبوعية",
-      "غرف تسميع مباشرة مع شيخ",
-      "مسار الإجازة",
-    ],
-  },
-  {
-    id: "arabic-non-native",
-    title: "اللغة العربية لغير الناطقين بها",
-    items: [
-      "تأسيس الحروف والنطق الصحيح",
-      "مهارات الاستماع والتحدث والقراءة والكتابة",
-      "مستويات متدرجة من المبتدئ إلى المتقدم",
-      "محادثة تفاعلية مع معلمين متخصصين",
-      "إعداد لاختبارات الكفاءة اللغوية",
-    ],
-  },
-  {
-    id: "egypt-gulf-curricula",
-    title: "المناهج الدراسية (مصر + الخليج)",
-    items: [
-      "لغة عربية",
-      "اللغات الأجنبية: (الإنجليزية، الفرنسية، الألمانية)",
-      "الرياضيات (منهج: عربي - إنجليزي)",
-      "العلوم: الفيزياء والكيمياء والأحياء (منهج: عربي – إنجليزي)",
-      "الدراسات اجتماعية: تاريخ وجغرافيا.",
-      "تربية إسلامية.",
-    ],
-  },
-  {
-    id: "courses-center",
-    title: "الدورات:",
-    items: [
-      "النحو: تأسيس وتوظيف",
-      "الصرف",
-      "العَروض",
-      "البلاغة",
-      "إعداد معلم اللغة العربية للناطقين بغيرها",
-      "التطبيق اللغوي",
-      "دورة البحث العلمي ومناهجه",
-      "الكتابة الأكاديمية",
-    ],
-  },
-];
+
 
 function Navbar() {
   return (
@@ -195,7 +147,7 @@ function HeroSection() {
             منصة تعليمية تهدف لصناعة جيل يجيد لغته ويحفظ كتاب ربه ويواكب عصره.
           </p>
           <p className="mx-auto mb-10 max-w-3xl text-base leading-relaxed text-emerald-50/85 sm:text-lg">
-            موجّهة للأطفال والكبار، من العرب وغير العرب، وتشمل علوم اللغة العربية والمناهج الدراسية والقرآن وعلومه.
+            موجّهة للأطفال والكبار من العرب وغير العرب، وتشمل علوم اللغة العربية والمناهج الدراسية والقرآن وعلومه.
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -290,39 +242,7 @@ function AudienceSection() {
   );
 }
 
-function ServicesSection() {
-  return (
-    <section id="platform-sections" className="section-spacing relative overflow-hidden bg-gradient-to-b from-[#0c3447] via-[#0a2c3d] to-[#082433]">
-      <div className="hero-mesh" />
-      <div className="site-container relative z-10">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-black text-white sm:text-4xl" style={{ lineHeight: 1.4 }}>
-            أقسام المنصة الرئيسة
-          </h2>
-        </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {platformSections.map((section) => (
-            <article id={section.id} key={section.id} className="glass card-hover rounded-3xl p-7 shadow-xl shadow-emerald-900/30">
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-100">
-                <BookIcon className="h-6 w-6" />
-              </div>
-              <h3 className="mb-4 text-xl font-bold leading-relaxed text-white">{section.title}</h3>
-              {section.intro ? <p className="mb-3 text-emerald-100/95">{section.intro}</p> : null}
-              {section.items.length ? (
-                <ul className="list-inside list-disc space-y-2 text-emerald-100/90">
-                  {section.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function FooterSection() {
   return (

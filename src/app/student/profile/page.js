@@ -10,9 +10,9 @@ const PROGRESS = [
 ];
 
 const UPCOMING_SESSIONS = [
-  { course: "اللغة العربية - قواعد", date: "السبت 7 مارس", time: "6:00 م", duration: "60 دقيقة" },
-  { course: "تلاوة وتجويد", date: "الاثنين 9 مارس", time: "5:30 م", duration: "45 دقيقة" },
-  { course: "مراجعة واجبات", date: "الأربعاء 11 مارس", time: "7:00 م", duration: "30 دقيقة" },
+  { course: "اللغة العربية - قواعد", date: "السبت 7 مارس", time: "6:00 م", duration: "60 دقيقة", meetLink: "https://meet.google.com/new" },
+  { course: "تلاوة وتجويد", date: "الاثنين 9 مارس", time: "5:30 م", duration: "45 دقيقة", meetLink: "https://meet.google.com/new" },
+  { course: "مراجعة واجبات", date: "الأربعاء 11 مارس", time: "7:00 م", duration: "30 دقيقة", meetLink: "https://meet.google.com/new" },
 ];
 
 const ACHIEVEMENTS = [
@@ -76,8 +76,12 @@ export default function StudentProfilePage() {
         <section className="modern-card mb-8 overflow-hidden rounded-3xl border border-white/60 p-6 shadow-2xl shadow-emerald-900/10 sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4 sm:gap-5">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-2xl font-black text-white shadow-lg shadow-emerald-500/30 sm:h-20 sm:w-20 sm:text-3xl">
-                م
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-2xl font-black text-white shadow-lg shadow-emerald-500/30 sm:h-20 sm:w-20 sm:text-3xl relative overflow-hidden group">
+                <span className="group-hover:opacity-0 transition-opacity">م</span>
+                <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="رفع صورة شخصية" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
               </div>
               <div>
                 <p className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
@@ -169,10 +173,16 @@ export default function StudentProfilePage() {
             <h2 className="text-xl font-black text-emerald-950">الحصص القادمة</h2>
             <ul className="mt-4 space-y-3">
               {UPCOMING_SESSIONS.map((session) => (
-                <li key={`${session.course}-${session.date}`} className="rounded-2xl border border-emerald-100 bg-white/70 p-4">
-                  <p className="font-bold text-emerald-900">{session.course}</p>
-                  <p className="mt-1 text-sm text-slate-700">{session.date} - {session.time}</p>
-                  <p className="text-xs font-medium text-emerald-700">المدة: {session.duration}</p>
+                <li key={`${session.course}-${session.date}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-emerald-100 bg-white/70 p-4">
+                  <div>
+                    <p className="font-bold text-emerald-900">{session.course}</p>
+                    <p className="mt-1 text-sm text-slate-700">{session.date} - {session.time}</p>
+                    <p className="text-xs font-medium text-emerald-700">المدة: {session.duration}</p>
+                  </div>
+                  <a href={session.meetLink || "https://meet.google.com/new"} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1 rounded-xl bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-200">
+                    دخول لجوجل ميت
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  </a>
                 </li>
               ))}
             </ul>
