@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function PortalNavbar({ sectionTitle, links = [], ctaLabel = "الصفحة الرئيسية", ctaHref = "/", userSession = null, onLogout, showCtaWithSession = false }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,8 +31,13 @@ export default function PortalNavbar({ sectionTitle, links = [], ctaLabel = "ا�
               )}
 
               <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
-                <div className="icon-ring flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-lg sm:text-xl font-bold text-white shadow-lg shadow-emerald-500/30">
-                  م
+                <div className="icon-ring flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30 relative overflow-hidden">
+                  <Image
+                    src="/Logo.jpeg"
+                    alt="لوجو مشاعل المعرفة"
+                    fill
+                    className="object-cover rounded-xl"
+                  />
                 </div>
                 <div className="flex min-w-0 flex-col">
                   <span className="truncate whitespace-nowrap text-sm font-bold text-white sm:text-lg">مشاعل المعرفة</span>
