@@ -32,8 +32,8 @@ export default function TeacherProfilePage() {
                     ...prev,
                     name: data.name || "",
                 }));
-            } catch (e) {
-                console.error("Failed to parse session", e);
+            } catch {
+                console.error("Failed to parse session");
             }
         }
         setLoading(false);

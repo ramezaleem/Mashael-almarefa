@@ -37,8 +37,7 @@ export default async function TeacherLayout({ children }) {
           { label: "المناهج الدراسية", href: "/egypt-gulf-curricula" },
         ];
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
       teacherLinks = [
         { label: "الملف الشخصي", href: "/teacher/profile" },
         { label: "ركن القرآن", href: "/quran-and-sciences" },
