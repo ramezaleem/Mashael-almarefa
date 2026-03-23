@@ -19,7 +19,7 @@ export default async function StudentLayout({ children }) {
       } else if (course === "المناهج الدراسية") {
         teacherLink = "/student/curricula-teachers";
       }
-    } catch (e) {
+    } catch {
       // fallback to quran
     }
   }
