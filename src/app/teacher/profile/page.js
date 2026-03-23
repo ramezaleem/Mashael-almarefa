@@ -43,6 +43,18 @@ export default function TeacherProfilePage() {
         setSaved(false);
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfile(prev => ({ ...prev, image: reader.result }));
+                setSaved(false);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setSaved(true);
@@ -162,6 +174,16 @@ export default function TeacherProfilePage() {
                                     dir="ltr"
                                 />
                             </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-emerald-900">تغيير الصورة الشخصية</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="w-full rounded-xl border border-emerald-100 bg-emerald-50/10 px-4 py-3 text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                            />
                         </div>
 
                         <div className="space-y-2">

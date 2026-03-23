@@ -25,10 +25,10 @@ export default function LoginPage() {
       { role: "student", email: "student2@gmail.com", password: "123456", redirect: "/student/profile", name: "طالب العربية لغير الناطقين", course: "العربية لغير الناطقين" },
       { role: "student", email: "student3@gmail.com", password: "123456", redirect: "/student/profile", name: "طالب المناهج الدراسية", course: "المناهج الدراسية" },
       { role: "admin", email: "admin@gmail.com", password: "123456", redirect: "/admin/dashboard", name: "مدير النظام", course: "" },
-      { role: "teacher", email: "teacher@gmail.com", password: "123456", redirect: "/teacher/dashboard", name: "معلم تجريبي", course: "" },
-      { role: "teacher", email: "quran@gmail.com", password: "123456", redirect: "/quran-and-sciences/students", name: "معلم ركن القرآن", course: "ركن القرآن" },
-      { role: "teacher", email: "arabic@gmail.com", password: "123456", redirect: "/arabic-non-native/students", name: "معلم العربية", course: "العربية لغير الناطقين" },
-      { role: "teacher", email: "curricula@gmail.com", password: "123456", redirect: "/egypt-gulf-curricula/students", name: "معلم المناهج الدراسية", course: "المناهج الدراسية" }
+      { role: "teacher", email: "teacher@gmail.com", password: "123456", redirect: "/teacher/profile", name: "معلم تجريبي", course: "" },
+      { role: "teacher", email: "quran@gmail.com", password: "123456", redirect: "/teacher/profile", name: "معلم ركن القرآن", course: "ركن القرآن" },
+      { role: "teacher", email: "arabic@gmail.com", password: "123456", redirect: "/teacher/profile", name: "معلم العربية", course: "العربية لغير الناطقين" },
+      { role: "teacher", email: "curricula@gmail.com", password: "123456", redirect: "/teacher/profile", name: "معلم المناهج الدراسية", course: "المناهج الدراسية" }
     ];
 
     const userByEmail = validUsers.find(u => u.email === email);
