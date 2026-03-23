@@ -12,7 +12,7 @@ export function middleware(request) {
         if (userRole && pathname.startsWith('/auth') && !searchParams.get('logout')) {
             if (userRole === 'student') return NextResponse.redirect(new URL('/student/profile', request.url));
             if (userRole === 'admin') return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-            if (userRole === 'teacher') return NextResponse.redirect(new URL('/teacher/dashboard', request.url));
+            if (userRole === 'teacher') return NextResponse.redirect(new URL('/teacher/profile', request.url));
         }
         return NextResponse.next();
     }
@@ -47,7 +47,7 @@ export function middleware(request) {
         if (userRole === 'student') {
             return NextResponse.redirect(new URL('/student/profile', request.url));
         } else if (userRole === 'teacher') {
-            return NextResponse.redirect(new URL('/teacher/dashboard', request.url));
+            return NextResponse.redirect(new URL('/teacher/profile', request.url));
         }
     }
 
@@ -87,7 +87,7 @@ export function middleware(request) {
         }
 
         if (!isAllowedTeacherRoute) {
-            return NextResponse.redirect(new URL('/teacher/dashboard', request.url));
+            return NextResponse.redirect(new URL('/teacher/profile', request.url));
         }
     }
 

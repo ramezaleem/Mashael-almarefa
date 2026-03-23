@@ -28,8 +28,8 @@ export default function AuthButtons() {
         let portalLink = "/student/profile";
         let portalLabel = "لوحة الطالب";
         if (session.role === "teacher") {
-            portalLink = "/teacher/dashboard";
-            portalLabel = "لوحة المعلم";
+            portalLink = "/teacher/profile";
+            portalLabel = "الملف الشخصي";
         } else if (session.role === "admin") {
             portalLink = "/admin/dashboard";
             portalLabel = "لوحة الإدارة";

@@ -24,7 +24,7 @@ const TOPICS = [
 
 const NAV_LINKS = [
   { label: "طلاب القسم", href: "/arabic-non-native/students" },
-  { label: "الملف الشخصي", href: "/teacher/dashboard" },
+  { label: "الملف الشخصي", href: "/teacher/profile" },
 ];
 
 const EMPTY_FORM = {
@@ -460,7 +460,7 @@ export default function ArabicNonNativePage() {
         sectionTitle="العربية لغير الناطقين"
         links={NAV_LINKS}
         ctaLabel="العودة إلى الصفحة الرئيسية"
-        ctaHref="/teacher/dashboard"
+        ctaHref="/teacher/profile"
         showCtaWithSession={true}
       />
 

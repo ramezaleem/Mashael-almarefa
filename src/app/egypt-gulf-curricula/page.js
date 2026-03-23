@@ -24,7 +24,7 @@ const TOPICS = [
 
 const NAV_LINKS = [
   { label: "طلاب القسم", href: "/egypt-gulf-curricula/students" },
-  { label: "الملف الشخصي", href: "/teacher/dashboard" },
+  { label: "الملف الشخصي", href: "/teacher/profile" },
 ];
 
 const EMPTY_FORM = {
@@ -459,7 +459,7 @@ export default function EgyptGulfCurriculaPage() {
         sectionTitle="المناهج الدراسية"
         links={NAV_LINKS}
         ctaLabel="العودة إلى الصفحة الرئيسية"
-        ctaHref="/teacher/dashboard"
+        ctaHref="/teacher/profile"
         showCtaWithSession={true}
       />
 

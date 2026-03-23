@@ -5,7 +5,7 @@ import TeacherNavbar from "../../teacher/teacher-navbar";
 
 const NAV_LINKS = [
     { label: "طلاب القسم", href: "/arabic-non-native/students" },
-    { label: "الملف الشخصي", href: "/teacher/dashboard" },
+    { label: "الملف الشخصي", href: "/teacher/profile" },
 ];
 
 const STUDENTS_DATA = [
@@ -58,7 +58,7 @@ export default function StudentsListPage() {
                 sectionTitle="العربية لغير الناطقين"
                 links={NAV_LINKS}
                 ctaLabel="العودة إلى الصفحة الرئيسية"
-                ctaHref="/teacher/dashboard"
+                ctaHref="/teacher/profile"
                 showCtaWithSession={true}
             />
 
