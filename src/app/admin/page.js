@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Mock data
 // Mock data for courses
@@ -35,6 +35,11 @@ export default function AdminUsersPage() {
     const [assigningToUser, setAssigningToUser] = useState(null);
     const [selectedCourses, setSelectedCourses] = useState([]);
     const [toast, setToast] = useState(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const filteredUsers = users.filter((user) => user.role === activeTab);
 
@@ -152,7 +157,7 @@ export default function AdminUsersPage() {
                                                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                                     </svg>
-                                                    {localStorage.getItem(`assigned_courses_${user.email}`) ? "تعديل الدورات" : "إتاحة دورات"}
+                                                    {mounted && localStorage.getItem(`assigned_courses_${user.email}`) ? "تعديل الدورات" : "إتاحة دورات"}
                                                 </button>
                                             </td>
                                         )}
