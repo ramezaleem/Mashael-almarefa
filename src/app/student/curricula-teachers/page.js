@@ -11,6 +11,7 @@ const SUBJECTS = [
     { id: "social", name: "الدراسات الاجتماعية", icon: "🌍" },
     { id: "french", name: "اللغة الفرنسية", icon: "🇫🇷" },
     { id: "german", name: "اللغة الألمانية", icon: "🇩🇪" },
+    { id: "islamic", name: "التربية الإسلامية", icon: "🕌" },
 ];
 
 const TEACHERS_DATA = [
@@ -57,6 +58,17 @@ const TEACHERS_DATA = [
         rating: "4.9",
         image: "",
         bio: "متخصصة في تعليم اللغة الفرنسية للمبتدئين والمتقدمين بأسلوب شيق يضمن الإتقان."
+    },
+    {
+        id: "CRU-T-005",
+        name: "د. إبراهيم فوزي",
+        subjects: ["islamic"],
+        specialization: "تربية إسلامية وتفسير",
+        available: "يومياً (8-10 م)",
+        phone: "201210212176",
+        rating: "5.0",
+        image: "",
+        bio: "دكتور في العقيدة والتفسير، متخصص في تبسيط مادة التربية الإسلامية وربطها بالواقع العملي للطلاب."
     }
 ];
 

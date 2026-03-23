@@ -53,7 +53,7 @@ export default function StudentDashboardPage() {
               الملف الشخصي
             </Link>
             <Link
-              href="/courses-center"
+              href="/student/courses"
               className="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-white px-5 py-2.5 text-sm font-bold text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50"
             >
               مركز الدورات
