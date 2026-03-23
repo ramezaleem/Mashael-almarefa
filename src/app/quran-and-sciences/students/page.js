@@ -26,7 +26,9 @@ function ProgressModal({ student, onClose, onSave }) {
         reading: "80",
         writing: "70",
         listening: "90",
-        conversation: "85"
+        conversation: "85",
+        achievements: "",
+        notes: ""
     });
 
     useEffect(() => {
@@ -49,7 +51,7 @@ function ProgressModal({ student, onClose, onSave }) {
                     <p className="mt-1 text-emerald-100 font-medium">{student.name}</p>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="p-8">
+                <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto p-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Stats Section */}
                         <div className="space-y-4">
@@ -90,6 +92,31 @@ function ProgressModal({ student, onClose, onSave }) {
                                     <span className="text-xs font-bold text-emerald-600 ml-2">{progress[skill]}%</span>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+
+                    {/* Achievements and Notes */}
+                    <div className="mt-8 space-y-4">
+                        <h3 className="font-bold text-emerald-800 border-b border-emerald-100 pb-2">الإنجازات والملاحظات</h3>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">أبرز الإنجازات</label>
+                            <textarea 
+                                value={progress.achievements} 
+                                onChange={(e) => setProgress({...progress, achievements: e.target.value})}
+                                placeholder="اكتب إنجازات الطالب هنا..."
+                                rows="3"
+                                className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500 resize-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">ملاحظات المعلم</label>
+                            <textarea 
+                                value={progress.notes} 
+                                onChange={(e) => setProgress({...progress, notes: e.target.value})}
+                                placeholder="اكتب ملاحظاتك على مستوى الطالب هنا..."
+                                rows="3"
+                                className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500 resize-none"
+                            />
                         </div>
                     </div>
 

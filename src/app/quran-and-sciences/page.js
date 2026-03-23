@@ -7,11 +7,11 @@ import TeacherNavbar from "../teacher/teacher-navbar";
 // ─── Static Data (module-level, never re-created) ─────────────────────────────
 
 const STUDENTS = [
-  "أحمد محمود",
-  "عمر عبد الله",
-  "فاطمة علي",
-  "زينب حسن",
-  "يوسف طارق",
+  { name: "طالب ركن القرآن", email: "student1@gmail.com" },
+  { name: "عمر عبد الله", email: "omar@example.com" },
+  { name: "فاطمة علي", email: "fatma@example.com" },
+  { name: "زينب حسن", email: "zainab@example.com" },
+  { name: "يوسف طارق", email: "youssef@example.com" },
 ];
 
 const TOPICS = [
@@ -23,7 +23,7 @@ const TOPICS = [
 ];
 
 const NAV_LINKS = [
-  { label: "الرئيسة", href: "/" },
+  { label: "طلاب القسم", href: "/quran-and-sciences/students" },
   { label: "الملف الشخصي", href: "/teacher/profile" },
 ];
 

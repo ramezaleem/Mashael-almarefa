@@ -15,12 +15,6 @@ const UPCOMING_SESSIONS = [
   { course: "مراجعة واجبات", date: "الأربعاء 11 مارس", time: "7:00 م", duration: "30 دقيقة", meetLink: "https://meet.google.com/new" },
 ];
 
-const ACHIEVEMENTS = [
-  "إكمال وحدة النحو الأساسية بنسبة 100%",
-  "تحسن سرعة القراءة بنسبة 22% خلال آخر شهر",
-  "حضور متواصل لمدة 9 حصص بدون غياب",
-];
-
 function StatCard({ label, value, hint }) {
   return (
     <article className="modern-card rounded-2xl border border-emerald-100/70 p-5 shadow-lg shadow-emerald-900/5">
@@ -55,15 +49,19 @@ export default function StudentProfilePage() {
     reading: 86,
     writing: 78,
     listening: 91,
-    conversation: 74
+    conversation: 74,
+    achievements: "",
+    notes: ""
   });
 
   useEffect(() => {
     const cookies = document.cookie.split("; ");
     const sessionCookie = cookies.find(c => c.startsWith("session="));
-    if (sessionCookie) {
+    if (sessionCookie?.split("=")[1]) {
       try {
-        const data = JSON.parse(decodeURIComponent(atob(sessionCookie.split("=")[1])));
+        const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+        const decoded = decodeURIComponent(atob(base64));
+        const data = JSON.parse(decoded);
         setStudent(prev => ({
           ...prev,
           name: data.name || prev.name,
@@ -216,17 +214,23 @@ export default function StudentProfilePage() {
           <article className="modern-card rounded-3xl border border-white/70 p-6 shadow-xl shadow-emerald-900/5">
             <h2 className="text-xl font-black text-emerald-950">الإنجازات والملاحظات</h2>
             <ul className="mt-4 space-y-3">
-              {ACHIEVEMENTS.map((item) => (
-                <li key={item} className="flex gap-3 rounded-2xl border border-emerald-100 bg-white/70 p-4 text-sm text-slate-700">
-                  <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
-                  <span>{item}</span>
+              {progressData.achievements ? (
+                progressData.achievements.split('\n').filter(a => a.trim()).map((item, idx) => (
+                  <li key={idx} className="flex gap-3 rounded-2xl border border-emerald-100 bg-white/70 p-4 text-sm text-slate-700">
+                    <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
+                    <span>{item}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="flex gap-3 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/30 p-4 text-sm text-slate-500 italic">
+                  <span>لا توجد إنجازات مسجلة حالياً.</span>
                 </li>
-              ))}
+              )}
             </ul>
             <div className="mt-6 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-4">
               <p className="text-sm font-bold text-emerald-900">ملاحظة المعلم</p>
               <p className="mt-2 text-sm text-slate-700">
-                الطالبة ملتزمة ومجتهدة. يُنصح بزيادة تدريبات المحادثة لمدة 10 دقائق يوميًا لتحسين الطلاقة خلال الأسابيع القادمة.
+                {progressData.notes || "لا توجد ملاحظات من المعلم حالياً."}
               </p>
             </div>
           </article>

@@ -54,7 +54,9 @@ export default function QuranTeachersPage() {
         const sessionCookie = cookies.find(c => c.startsWith("session="));
         if (sessionCookie) {
             try {
-                const data = JSON.parse(decodeURIComponent(atob(sessionCookie.split("=")[1])));
+                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                const decoded = decodeURIComponent(atob(base64));
+                const data = JSON.parse(decoded);
                 if (data.course) setCourse(data.course);
             } catch (e) { }
         }

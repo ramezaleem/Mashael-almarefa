@@ -18,7 +18,9 @@ export default function AdminNavbar({ sectionTitle, links }) {
             const sessionCookie = cookies.find(c => c.startsWith("session="));
             if (sessionCookie) {
                 try {
-                    const data = JSON.parse(decodeURIComponent(atob(sessionCookie.split("=")[1])));
+                    const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                    const decoded = decodeURIComponent(atob(base64));
+                    const data = JSON.parse(decoded);
                     setSession(data);
                 } catch (e) {
                     console.error("Failed to parse session", e);

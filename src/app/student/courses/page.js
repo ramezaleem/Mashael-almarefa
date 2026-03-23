@@ -24,7 +24,9 @@ export default function StudentCoursesPage() {
         
         if (sessionCookie) {
             try {
-                const userData = JSON.parse(decodeURIComponent(atob(sessionCookie.split("=")[1])));
+                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                const decoded = decodeURIComponent(atob(base64));
+                const userData = JSON.parse(decoded);
                 setUser(userData);
 
                 // For logged-in students, we typically show assigned courses, 

@@ -7,19 +7,17 @@ import TeacherNavbar from "../teacher/teacher-navbar";
 // ─── Static Data (module-level, never re-created) ─────────────────────────────
 
 const STUDENTS = [
-  "أحمد محمود",
-  "عمر عبد الله",
-  "فاطمة علي",
-  "زينب حسن",
-  "يوسف طارق",
+  { name: "طالب المناهج الدراسية", email: "student3@gmail.com" },
+  { name: "عمر عبد الله", email: "omar.cur@example.com" },
+  { name: "فاطمة علي", email: "fatma.cur@example.com" },
 ];
 
 const TOPICS = [
-  "حفظ سورة البقرة",
-  "مراجعة عامة",
-  "أحكام التجويد (النون الساكنة)",
-  "شرح تحفة الأطفال",
-  "تسميع متن الجزرية",
+  "رياضيات - الصف الرابع",
+  "لغة عربية - الصف الأول الإعدادي",
+  "علوم - الصف السادس",
+  "دراسات اجتماعية",
+  "تربية إسلامية",
 ];
 
 const NAV_LINKS = [
@@ -161,8 +159,8 @@ function SessionForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
               -- اختر من القائمة --
             </option>
             {STUDENTS.map((s) => (
-              <option key={s} value={s} className="bg-white text-emerald-950">
-                {s}
+              <option key={s.email} value={s.email} className="bg-white text-emerald-950">
+                {s.name}
               </option>
             ))}
           </select>
@@ -238,7 +236,7 @@ function SessionForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
       {/* ── Topic ── */}
       <div className="space-y-1.5">
         <label htmlFor="topic" className="block text-sm font-bold text-emerald-950">
-          موضوع الحصة <span className="text-red-500">*</span>
+          موضوع الحلقة <span className="text-red-500">*</span>
         </label>
         <input
           id="topic"
@@ -246,7 +244,7 @@ function SessionForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
           name="topic"
           value={formData.topic}
           onChange={onChange}
-          placeholder="مثال : مراجعة مادة الرياضيات أو شرح الوحدة الأولى في العلوم"
+          placeholder="مثال : المبتدأ والخبر - الدرس الثاني"
           className={`${INPUT_BASE} ${border("topic")}`}
         />
         <FieldError message={errors.topic} />
@@ -302,34 +300,33 @@ function SessionForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
       </div>
 
       {/* ── Submit ── */}
-      <div className="border-t border-emerald-100 pt-6">
+      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="glow-button flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-emerald-500 to-emerald-600 px-7 py-4 text-sm font-bold text-white shadow-[0_4px_14px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.01] hover:from-emerald-400 hover:to-emerald-500 hover:shadow-[0_6px_20px_rgba(16,185,129,0.4)] disabled:cursor-wait disabled:opacity-70 disabled:hover:scale-100"
+          className="glow-button group flex-1 inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-l from-emerald-600 to-emerald-700 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-emerald-900/10 transition-all hover:scale-[1.02] hover:from-emerald-500 hover:to-emerald-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 sm:py-5 lg:text-base"
         >
           {isSubmitting ? (
-            <>
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              جاري الحفظ...
-            </>
+            <svg className="h-5 w-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
           ) : (
-            "حفظ التسجيل"
+            <>
+              <span>تسجيل الجلسة</span>
+              <svg className="h-5 w-5 transition-transform group-hover:translate-x-[-4px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </>
           )}
         </button>
+
+        <Link
+          href="/teacher/profile"
+          className="inline-flex flex-1 items-center justify-center rounded-2xl border border-emerald-100 bg-white px-8 py-4 text-sm font-bold text-emerald-700 shadow-sm transition-all hover:bg-emerald-50 active:scale-[0.98] sm:py-5 lg:text-base"
+        >
+          إلغاء والعودة
+        </Link>
       </div>
     </form>
   );
@@ -378,7 +375,7 @@ function FooterSection() {
             <h4 className="mb-3 text-lg font-bold">تواصل معنا</h4>
             <p className="text-sm text-emerald-100/85">البريد الإلكتروني: info@mashael-almaarifa.com</p>
             <p className="mt-2 text-sm text-emerald-100/85" dir="ltr">
-              WhatsApp: +20 100 000 0000
+              WhatsApp: +20 121 021 2176
             </p>
           </div>
         </div>
@@ -392,7 +389,7 @@ function FooterSection() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function EgyptGulfCurriculaPage() {
+export default function TeacherSessionPage() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
