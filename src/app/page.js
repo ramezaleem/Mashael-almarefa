@@ -265,7 +265,7 @@ function FooterSection() {
             <h4 className="mb-3 text-lg font-bold">تواصل معنا</h4>
             <p className="text-sm text-emerald-100/85">البريد الإلكتروني: info@mashael-almaarifa.com</p>
             <p className="mt-2 text-sm text-emerald-100/85" dir="ltr">
-              WhatsApp: +20 100 000 0000
+              WhatsApp: +20 121 021 2176
             </p>
           </div>
         </div>
