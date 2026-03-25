@@ -1,6 +1,6 @@
 # Mashael-Almarefa Database Schema
 
-This document outlines the relational database structure for the Mashael-Almarefa platform, designed to replace the current `localStorage` based dynamic data management.
+This document outlines the relational database structure for the Mashael-Almarefa platform, designed for professional deployment with a real database (PostgreSQL/Supabase).
 
 ## ER Diagram (Conceptual)
 
@@ -8,109 +8,131 @@ This document outlines the relational database structure for the Mashael-Almaref
 erDiagram
     USERS ||--|| STUDENTS : "is a student"
     USERS ||--|| TEACHERS : "is a teacher"
+    USERS ||--|| ADMINS : "is an admin"
     TEACHERS ||--o{ SESSIONS : "conducts"
     STUDENTS ||--o{ SESSIONS : "attends"
-    STUDENTS ||--o{ ENROLLMENTS : "has"
-    COURSES ||--o{ ENROLLMENTS : "contains"
-    COURSES ||--o{ SESSIONS : "covers"
-    STUDENTS ||--|| STUDENT_PROGRESS : "has records"
-    TEACHERS ||--|| TEACHER_FINANCE : "has accounts"
-    USERS ||--o{ ADMIN_TASKS : "manages"
+    COURSES ||--o{ SESSIONS : "belongs to"
+    COURSES ||--o{ ENROLLMENTS : "has"
+    STUDENTS ||--o{ ENROLLMENTS : "is enrolled"
+    STUDENTS ||--|| STUDENT_PROGRESS : "tracks"
+    TEACHERS ||--|| TEACHER_FINANCE : "has payroll"
+    ADMINS ||--o{ ADMIN_TASKS : "manages"
+    COURSES ||--o{ COURSE_VIDEOS : "contains"
 ```
 
 ## Tables Definition
 
-### 1. `users`
-Core authentication and identification table.
+### 1. `users` (Core Auth Table)
+The main table for authentication and user management.
 | Column | Type | Description |
 | :--- | :--- | :--- |
 | `id` | UUID (PK) | Unique identifier |
-| `full_name` | VARCHAR(255) | User's display name |
-| `email` | VARCHAR(255) (Unique) | Login email |
-| `password_hash` | VARCHAR(255) | Encrypted password |
+| `email` | VARCHAR(255) | Unique login email (Login Identity) |
+| `password_hash` | VARCHAR(255) | Encrypted credentials |
 | `role` | ENUM | 'admin', 'teacher', 'student' |
+| `full_name` | VARCHAR(255) | Global display name |
+| `is_verified` | BOOLEAN | Email verification status |
 | `created_at` | TIMESTAMP | Registration date |
-| `last_login` | TIMESTAMP | Last access time |
+| `last_login` | TIMESTAMP | Last session activity |
 
-### 2. `students`
+### 2. `admins` (Administrator Profile)
+Stores specific data for platform administrators.
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `user_id` | UUID (FK) | Reference to `users.id` |
+| `admin_level` | VARCHAR(50) | 'super_admin', 'editor', 'moderator' |
+| `permissions` | JSONB | Specific access rights |
+
+### 3. `students` (Student Profile)
 Extended profile for students.
 | Column | Type | Description |
 | :--- | :--- | :--- |
 | `user_id` | UUID (FK) | Reference to `users.id` |
-| `student_code` | VARCHAR(20) | e.g., 'STD-24017' |
-| `age` | INT | Student's age |
-| `country` | VARCHAR(100) | Resident country |
-| `guardian_name` | VARCHAR(255) | Name of parent/guardian |
-| `guardian_phone`| VARCHAR(20) | Contact phone |
-| `current_level` | VARCHAR(100) | Academic level |
-| `department` | VARCHAR(100) | e.g., 'Arabic', 'Quran' |
+| `student_code` | VARCHAR(20) | Unique student ID (e.g., STD-001) |
+| `age` | INT | Age of the student |
+| `country` | VARCHAR(100) | Residency |
+| `guardian_name` | VARCHAR(255) | Parent's name (for children) |
+| `guardian_phone`| VARCHAR(20) | Contact for guardian |
+| `current_level` | VARCHAR(100) | Progress level (e.g., Level 1) |
+| `department` | VARCHAR(100) | Department (Quran/Arabic/Curricula) |
 
-### 3. `teachers`
-Extended profile for teachers.
+### 4. `teachers` (Teacher Profile)
+Extended profile for teachers, visible to students.
 | Column | Type | Description |
 | :--- | :--- | :--- |
 | `user_id` | UUID (FK) | Reference to `users.id` |
-| `specialization`| TEXT | e.g., 'Specialist in Tajweed' |
-| `bio` | TEXT | Professional biography |
-| `phone` | VARCHAR(20) | WhatsApp/Contact number |
-| `photo_url` | TEXT | Profile image path/URL |
-| `availability` | TEXT | e.g., 'Sat, Mon 5-9 PM' |
+| `specialization`| TEXT | Professional field |
+| `bio` | TEXT | Description for profile card |
+| `phone` | VARCHAR(20) | Contact number (WhatsApp) |
+| `photo_url` | TEXT | Link to profile image |
+| `availability` | TEXT | Working hours description |
 | `status` | ENUM | 'active' (نشط), 'on_vacation' (إجازة) |
-| `rating` | DECIMAL(3,2) | Overall rating from 1 to 5 |
+| `rating` | DECIMAL(3,2) | User satisfaction score |
 
-### 4. `courses`
-List of available educational tracks.
+### 5. `courses` (Course Catalog)
+The repository of all educational tracks available.
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `id` | SERIAL (PK) | Unique identifier |
-| `title` | VARCHAR(255) | Course name |
-| `description` | TEXT | Course summary |
-| `created_by` | UUID (FK) | Admin who created it |
+| `id` | SERIAL (PK) | Course identifier |
+| `title` | VARCHAR(255) | Name of the course |
+| `description` | TEXT | Summary and objective |
+| `category` | VARCHAR(100) | (Quran, Tajweed, Arabic, etc.) |
 
-### 5. `sessions` (Lessons/Classes)
-The heart of the scheduling and attendance system.
+### 6. `course_videos` (Courses Center Data)
+Dynamic list of uploaded materials in the Admin Courses Center.
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `id` | SERIAL (PK) | Unique identifier |
+| `id` | SERIAL (PK) | Video identifier |
+| `course_id` | INT (FK) | Reference to `courses.id` |
+| `video_url` | TEXT | Cloud storage link |
+| `thumbnail_url` | TEXT | Preview image link |
+| `notes` | TEXT | Video description/notes |
+| `upload_date` | DATE | Date of addition |
+
+### 7. `sessions` (Educational Classes)
+Tracks lesson scheduling and historic data.
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | SERIAL (PK) | Unique ID |
 | `teacher_id` | UUID (FK) | Reference to `teachers.user_id` |
 | `student_id` | UUID (FK) | Reference to `students.user_id` |
 | `course_id` | INT (FK) | Reference to `courses.id` |
-| `session_date` | DATE | Date of the class |
+| `session_date` | DATE | Date of the session |
 | `session_time` | TIME | Start time |
-| `duration` | INT | Duration in minutes |
-| `meet_link` | TEXT | Google Meet or similar URL |
+| `duration` | INT | Minutes (15, 30, 45, 60, etc.) |
+| `meet_link` | TEXT | Meeting room link |
 | `status` | ENUM | 'scheduled', 'completed', 'canceled' |
-| `topic_covered` | TEXT | What was taught (if completed) |
-| `teacher_notes` | TEXT | Private notes from teacher |
+| `topic` | TEXT | Subject discussed in the lesson |
 
-### 6. `student_progress`
-Tracks skills and achievements for students.
+### 8. `student_progress` (Academic Statistics)
+Dynamic tracking for student dashboards.
 | Column | Type | Description |
 | :--- | :--- | :--- |
 | `student_id` | UUID (FK) | Reference to `students.user_id` |
-| `reading_pct` | INT | Reading skill 0-100 |
-| `writing_pct` | INT | Writing skill 0-100 |
-| `listening_pct`| INT | Listening skill 0-100 |
-| `convo_pct` | INT | Conversation skill 0-100 |
-| `achievements` | TEXT | List of milestone reached |
-| `average_rating`| DECIMAL(3,1) | Average rating from lessons |
-| `total_hours` | INT | Total hours completed |
+| `attendance_pct`| INT | Overall attendance percentage |
+| `skills_reading`| INT | Skill score 0-100 |
+| `skills_writing`| INT | Skill score 0-100 |
+| `skills_listen` | INT | Skill score 0-100 |
+| `skills_convo` | INT | Skill score 0-100 |
+| `total_hours` | INT | Accumulated learning hours |
+| `achievements` | TEXT | Milestone history |
 
-### 7. `finances` (Accounting)
-Manages teacher rates and payments.
+### 9. `finances` (Teacher Payroll)
+Financial tracking as seen in `/admin/teacher-sessions`.
 | Column | Type | Description |
 | :--- | :--- | :--- |
 | `teacher_id` | UUID (FK) | Reference to `teachers.user_id` |
-| `rate_per_session`| DECIMAL(10,2) | Negotiated rate per lesson |
-| `total_earned` | DECIMAL(10,2) | Auto-calculated (sessions * rate) |
-| `amount_paid` | DECIMAL(10,2) | Total received by teacher |
-| `last_payment_at`| TIMESTAMP | Date of last payout |
+| `rate_per_session`| DECIMAL(10,2) | Agreed rate per session |
+| `total_due` | DECIMAL(10,2) | Auto-sum of completed sessions |
+| `amount_paid` | DECIMAL(10,2) | Manual entry of received funds |
+| `balance` | DECIMAL(10,2) | Remaining amount to be paid |
 
-### 8. `admin_tasks`
-Operational checklist for admins.
+### 10. `admin_tasks` (Checklist)
+The manual task system in `/admin/dashboard`.
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `id` | SERIAL (PK) | Task ID |
-| `description` | TEXT | Task content |
-| `status` | ENUM | 'pending', 'completed' |
-| `created_at` | TIMESTAMP | Task creation date |
+| `id` | SERIAL (PK) | Task identifier |
+| `admin_id` | UUID (FK) | Reference to `users.id` |
+| `content` | TEXT | Task description |
+| `is_completed` | BOOLEAN | Status of the task |
+| `created_at` | TIMESTAMP | Creation date |
