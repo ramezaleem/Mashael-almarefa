@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AuthButtons from "@/components/auth-buttons";
 import ServicesSection from "@/components/services-section";
+import Footer from "@/components/footer";
 import Image from "next/image";
 
 function SparkIcon({ className = "w-5 h-5" }) {
@@ -250,32 +251,6 @@ function AudienceSection() {
 
 
 
-function FooterSection() {
-  return (
-    <footer id="contact" className="relative overflow-hidden bg-[#041722] text-emerald-50">
-      <div className="site-container py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div>
-            <h3 className="mb-3 text-2xl font-bold">مشاعل المعرفة</h3>
-            <p className="max-w-xl text-sm leading-relaxed text-emerald-100/85">
-              بيئة تربوية متكاملة تزرع العلم والإيمان معًا، وتجمع بين تعليم القرآن واللغة العربية والمناهج الدراسية.
-            </p>
-          </div>
-          <div className="md:text-left">
-            <h4 className="mb-3 text-lg font-bold">تواصل معنا</h4>
-            <p className="text-sm text-emerald-100/85">البريد الإلكتروني: info@mashael-almaarifa.com</p>
-            <p className="mt-2 text-sm text-emerald-100/85" dir="ltr">
-              WhatsApp: +20 121 021 2176
-            </p>
-          </div>
-        </div>
-        <div className="mt-10 border-t border-emerald-200/15 pt-6 text-center text-sm text-emerald-100/70">
-          © {new Date().getFullYear()} مشاعل المعرفة. جميع الحقوق محفوظة.
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 export default function Home() {
   return (
@@ -286,7 +261,7 @@ export default function Home() {
       <IdentitySection />
       <AudienceSection />
       <ServicesSection />
-      <FooterSection />
+      <Footer />
     </main>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const TEACHERS_DATA = [
+const INITIAL_TEACHERS = [
   {
     id: 1,
     name: "أحمد عبد الله",
@@ -35,8 +35,14 @@ const TEACHERS_DATA = [
 
 export default function AdminTeacherSessionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [teachers, setTeachers] = useState(INITIAL_TEACHERS);
 
-  const filteredTeachers = TEACHERS_DATA.filter((t) =>
+  useEffect(() => {
+    const teacher1Extra = parseInt(localStorage.getItem("teacher_1_sessions") || "45");
+    setTeachers(prev => prev.map(t => t.id === 1 ? { ...t, completedSessions: teacher1Extra } : t));
+  }, []);
+
+  const filteredTeachers = teachers.filter((t) =>
     t.name.includes(searchTerm) || t.department.includes(searchTerm)
   );
 

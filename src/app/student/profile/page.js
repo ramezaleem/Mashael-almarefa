@@ -66,7 +66,9 @@ export default function StudentProfilePage() {
           ...prev,
           name: data.name || prev.name,
           course: data.course || prev.course,
-          level: data.course ? `مسجل في: ${data.course}` : prev.level,
+          level: data.department 
+            ? `${data.department}${data.subjects?.length > 0 ? ` - (${data.subjects.join("، ")})` : ""}` 
+            : prev.level,
           email: data.email || prev.email,
         }));
 

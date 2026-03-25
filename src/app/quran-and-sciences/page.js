@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useCallback } from "react";
 import TeacherNavbar from "../teacher/teacher-navbar";
+import Footer from "@/components/footer";
 
 // ─── Static Data (module-level, never re-created) ─────────────────────────────
 
@@ -497,7 +498,7 @@ export default function QuranAndSciencesSessionPage() {
       </section>
 
       <div className="mt-auto w-full relative z-20">
-        <FooterSection />
+        <Footer />
       </div>
     </main>
   );

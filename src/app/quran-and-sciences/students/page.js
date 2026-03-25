@@ -130,7 +130,7 @@ function ProgressModal({ student, onClose, onSave }) {
     );
 }
 
-function FooterSection() {
+function FooterSection({ currentYear }) {
     return (
         <footer id="contact" className="relative overflow-hidden bg-[#041722] text-emerald-50">
             <div className="site-container py-12">
@@ -150,7 +150,7 @@ function FooterSection() {
                     </div>
                 </div>
                 <div className="mt-10 border-t border-emerald-200/15 pt-6 text-center text-sm text-emerald-100/70">
-                    © {new Date().getFullYear()} مشاعل المعرفة. جميع الحقوق محفوظة.
+                    © {currentYear || "2026"} مشاعل المعرفة. جميع الحقوق محفوظة.
                 </div>
             </div>
         </footer>
@@ -159,6 +159,11 @@ function FooterSection() {
 
 export default function QuranStudentsListPage() {
     const [selectedStudent, setSelectedStudent] = useState(null);
+    const [currentYear, setCurrentYear] = useState(null);
+
+    useEffect(() => {
+        setCurrentYear(new Date().getFullYear());
+    }, []);
 
     const handleSave = (studentId, progress) => {
         localStorage.setItem(`progress_${studentId}`, JSON.stringify(progress));
@@ -257,7 +262,7 @@ export default function QuranStudentsListPage() {
             )}
 
             <div className="mt-auto w-full relative z-20">
-                <FooterSection />
+                <FooterSection currentYear={currentYear} />
             </div>
         </main>
     );

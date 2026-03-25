@@ -13,11 +13,39 @@ export default function SignupPage() {
         phone: "",
         guardianPhone: "",
         countryCode: "+20",
-        countryName: "مصر"
+        countryName: "مصر",
+        department: "",
+        selectedSubjects: []
     });
 
+    const DEPARTMENTS = [
+        { id: "quran", name: "ركن القرآن الكريم" },
+        { id: "arabic-non-native", name: "اللغة العربية لغير الناطقين" },
+        { id: "curricula", name: "المناهج الدراسية" },
+    ];
+
+    const CURRICULA_SUBJECTS = [
+        { id: "arabic", name: "اللغة العربية", icon: "📚" },
+        { id: "english", name: "اللغة الإنجليزية", icon: "🇬🇧" },
+        { id: "math", name: "الرياضيات", icon: "📐" },
+        { id: "science", name: "العلوم", icon: "🧪" },
+        { id: "social", name: "الدراسات الاجتماعية", icon: "🌍" },
+        { id: "french", name: "اللغة الفرنسية", icon: "🇫🇷" },
+        { id: "german", name: "اللغة الألمانية", icon: "🇩🇪" },
+        { id: "islamic", name: "التربية الإسلامية", icon: "🕌" },
+    ];
+
     const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.id]: e.target.value });
+        setFormData({ ...formData, [e.target.id || e.target.name]: e.target.value });
+    };
+
+    const toggleSubject = (subjectId) => {
+        setFormData(prev => ({
+            ...prev,
+            selectedSubjects: prev.selectedSubjects.includes(subjectId)
+                ? prev.selectedSubjects.filter(id => id !== subjectId)
+                : [...prev.selectedSubjects, subjectId]
+        }));
     };
 
     const countries = [
@@ -43,6 +71,16 @@ export default function SignupPage() {
             return;
         }
 
+        if (!formData.department) {
+            setError("الرجاء اختيار القسم التابع له.");
+            return;
+        }
+
+        if (formData.department === "curricula" && formData.selectedSubjects.length === 0) {
+            setError(role === "teacher" ? "الرجاء اختيار مادة واحدة على الأقل لتدريسها." : "الرجاء اختيار مادة واحدة على الأقل لتسجيلها.");
+            return;
+        }
+
         if (role === "student" && !formData.guardianPhone) {
             setError("الرجاء إدخال رقم هاتف ولي الأمر.");
             return;
@@ -53,9 +91,20 @@ export default function SignupPage() {
             return;
         }
 
-        // Simulating success
-        alert("تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.");
-        window.location.href = "/auth/login";
+        // Simulating success and storing data for the profile
+        const userData = {
+            name: formData.name,
+            email: formData.email,
+            role: role,
+            department: DEPARTMENTS.find(d => d.id === formData.department)?.name || "",
+            subjects: formData.selectedSubjects.map(id => CURRICULA_SUBJECTS.find(s => s.id === id)?.name).filter(Boolean),
+            course: role === "student" ? "بوابة الطالب" : "لوحة المعلم"
+        };
+        const base64 = btoa(encodeURIComponent(JSON.stringify(userData)));
+        document.cookie = `session=${encodeURIComponent(base64)}; path=/; max-age=86400`;
+
+        alert("تم إنشاء الحساب بنجاح! سيتم توجيهك إلى ملفك الشخصي.");
+        window.location.href = role === "student" ? "/student/profile" : "/teacher/profile";
     };
 
     return (
@@ -123,6 +172,58 @@ export default function SignupPage() {
                                 </div>
                             )}
                         </label>
+                    </div>
+
+                    {/* Common Field: Department Selection */}
+                    <div className="space-y-6 animate-in slide-in-from-top-4 duration-500">
+                        <div className="space-y-3">
+                            <label className="block text-sm font-bold text-emerald-900 border-r-4 border-emerald-500 pr-3">
+                                {role === "student" ? "القسم الذي ترغب في الانضمام إليه" : "القسم التابع له المعلم"}
+                            </label>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                {DEPARTMENTS.map((dept) => (
+                                    <label key={dept.id} className="relative cursor-pointer group">
+                                        <input
+                                            type="radio"
+                                            name="department"
+                                            value={dept.id}
+                                            checked={formData.department === dept.id}
+                                            onChange={handleInputChange}
+                                            className="peer sr-only"
+                                        />
+                                        <div className="flex h-full items-center justify-center rounded-xl border-2 border-slate-100 bg-white/50 p-3 text-center text-xs font-bold text-emerald-950 transition-all hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 shadow-sm group-hover:shadow-md">
+                                            {dept.name}
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Common: Subjects Selection (If Curricula) */}
+                        {formData.department === "curricula" && (
+                            <div className="space-y-3 animate-in fade-in zoom-in-95 duration-300">
+                                <label className="block text-sm font-bold text-emerald-900 border-r-4 border-emerald-500 pr-3">
+                                    {role === "teacher" ? "المواد التي تقوم بتدريسها" : "المواد التي تود دراستها"}
+                                </label>
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                    {CURRICULA_SUBJECTS.map((sub) => (
+                                        <button
+                                            key={sub.id}
+                                            type="button"
+                                            onClick={() => toggleSubject(sub.id)}
+                                            className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2 transition-all ${
+                                                formData.selectedSubjects.includes(sub.id)
+                                                    ? "border-emerald-500 bg-emerald-50 shadow-inner"
+                                                    : "border-slate-100 bg-white/50 hover:border-emerald-200"
+                                            }`}
+                                        >
+                                            <span className="text-xl">{sub.icon}</span>
+                                            <span className="text-[10px] font-bold text-emerald-950">{sub.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

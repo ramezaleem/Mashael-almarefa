@@ -18,6 +18,7 @@ const EMPTY_FORM = {
   course: "",
   date: "",
   video: null,
+  thumbnail: null,
   notes: "",
 };
 
@@ -79,26 +80,17 @@ function CourseForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
         {/* ── Course ── */}
         <div className="space-y-1.5">
           <label htmlFor="course" className="block text-sm font-bold text-emerald-950">
-            اختر الدورة <span className="text-red-500">*</span>
+            اسم الدورة <span className="text-red-500">*</span>
           </label>
-          <SelectWrapper>
-            <select
-              id="course"
-              name="course"
-              value={formData.course}
-              onChange={onChange}
-              className={`${INPUT_BASE} ${border("course")} appearance-none`}
-            >
-              <option value="" disabled hidden className="text-slate-400">
-                -- اختر من القائمة --
-              </option>
-              {COURSES.map((c) => (
-                <option key={c} value={c} className="bg-white text-emerald-950">
-                  {c}
-                </option>
-              ))}
-            </select>
-          </SelectWrapper>
+          <input
+            id="course"
+            name="course"
+            type="text"
+            value={formData.course}
+            onChange={onChange}
+            placeholder="أدخل اسم الدورة..."
+            className={`${INPUT_BASE} ${border("course")}`}
+          />
           <FieldError message={errors.course} />
         </div>
 
@@ -119,63 +111,91 @@ function CourseForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
         </div>
       </div>
 
-      {/* ── Video Upload ── */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-bold text-emerald-950">
-          رفع فيديو الدورة <span className="text-red-500">*</span>
-        </label>
-        <div
-          className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 transition-all ${errors.video
-            ? "border-red-400 bg-red-50/50"
-            : "border-emerald-200/80 bg-white/60 hover:border-emerald-400 hover:bg-emerald-50/50"
-            }`}
-        >
-          {formData.video ? (
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+      {/* ── Video & Thumbnail Upload ── */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        {/* Video Upload */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-bold text-emerald-950">
+            رفع فيديو الدورة <span className="text-red-500">*</span>
+          </label>
+          <div
+            className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 transition-all ${errors.video
+              ? "border-red-400 bg-red-50/50"
+              : "border-emerald-200/80 bg-white/60 hover:border-emerald-400 hover:bg-emerald-50/50"
+              }`}
+          >
+            {formData.video ? (
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+                  </svg>
+                </div>
+                <p className="max-w-[200px] truncate text-xs font-bold text-emerald-900">{formData.video.name}</p>
+              </div>
+            ) : (
+              <>
+                <svg
+                  className="h-8 w-8 text-emerald-500/80"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-              </div>
-              <p className="text-sm font-bold text-emerald-900">{formData.video.name}</p>
-              <p className="mt-1 text-xs font-medium text-emerald-700">
-                {(formData.video.size / (1024 * 1024)).toFixed(2)} MB
-              </p>
-            </div>
-          ) : (
-            <>
-              <svg
-                className="h-10 w-10 text-emerald-500/80"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"
-                />
-              </svg>
-              <div className="text-center">
-                <p className="text-sm font-bold text-emerald-950">
-                  اضغط لاختيار فيديو الدورة
-                </p>
-                <p className="mt-1.5 text-xs text-slate-500">
-                  أو قم بسحب وإسقاط الملف هنا (الصيغ المدعومة: MP4, WebM)
-                </p>
-              </div>
-            </>
-          )}
-          <input
-            type="file"
-            name="video"
-            accept="video/mp4,video/webm"
-            onChange={onChange}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0 outline-none"
-          />
+                <p className="text-xs font-bold text-emerald-950 text-center">اضغط لرفع الفيديو</p>
+              </>
+            )}
+            <input
+              type="file"
+              name="video"
+              accept="video/mp4,video/webm"
+              onChange={onChange}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0 outline-none"
+            />
+          </div>
+          <FieldError message={errors.video} />
         </div>
-        <FieldError message={errors.video} />
+
+        {/* Thumbnail Upload */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-bold text-emerald-950">
+            صورة مصغرة <span className="text-red-500">*</span>
+          </label>
+          <div
+            className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 transition-all ${errors.thumbnail
+              ? "border-red-400 bg-red-50/50"
+              : "border-emerald-200/80 bg-white/60 hover:border-emerald-400 hover:bg-emerald-50/50"
+              }`}
+          >
+            {formData.thumbnail ? (
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <p className="max-w-[200px] truncate text-xs font-bold text-emerald-900">{formData.thumbnail.name}</p>
+              </div>
+            ) : (
+              <>
+                <svg className="h-8 w-8 text-emerald-500/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="text-xs font-bold text-emerald-950 text-center">اضغط لرفع صورة مصغرة</p>
+              </>
+            )}
+            <input
+              type="file"
+              name="thumbnail"
+              accept="image/*"
+              onChange={onChange}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0 outline-none"
+            />
+          </div>
+          <FieldError message={errors.thumbnail} />
+        </div>
       </div>
 
       {/* ── Notes ── */}
@@ -228,6 +248,7 @@ function CourseForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
     </form>
   );
 }
+
 
 // ─── Success State ────────────────────────────────────────────────────────────
 
@@ -345,9 +366,10 @@ export default function CoursesCenterPage() {
 
   const validate = useCallback(() => {
     const errs = {};
-    if (!formData.course) errs.course = "الرجاء اختيار الدورة";
+    if (!formData.course) errs.course = "الرجاء إدخال اسم الدورة";
     if (!formData.date) errs.date = "الرجاء تحديد تاريخ الإضافة";
     if (!formData.video) errs.video = "الرجاء رفع فيديو الدورة";
+    if (!formData.thumbnail) errs.thumbnail = "الرجاء رفع صورة مصغرة";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }, [formData]);
