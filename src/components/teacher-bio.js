@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 export default function TeacherBio({ bio }) {
     const [isExpanded, setIsExpanded] = useState(false);
-    
+
     if (!bio) return null;
 
     // We show the "Read More" button if the bio is long enough to potentially exceed 3 lines
@@ -16,7 +16,7 @@ export default function TeacherBio({ bio }) {
                 {bio}
             </p>
             {isLong && (
-                <button 
+                <button
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="text-xs font-bold text-emerald-600 hover:text-emerald-700 w-fit mt-2 transition-colors flex items-center gap-1 group"
                 >

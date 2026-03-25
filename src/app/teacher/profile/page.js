@@ -17,6 +17,7 @@ export default function TeacherProfilePage() {
         phone: "",
         bio: "",
         image: "",
+        status: "نشط", // نشط أو إجازة
         rating: "4.8" // Default for new profiles
     });
 
@@ -32,10 +33,19 @@ export default function TeacherProfilePage() {
                 setProfile(prev => ({
                     ...prev,
                     name: data.name || "",
+                    specialization: data.department 
+                        ? `${data.department}${data.subjects?.length > 0 ? ` (${data.subjects.join("، ")})` : ""}` 
+                        : prev.specialization,
                 }));
             } catch {
                 console.error("Failed to parse session");
             }
+        }
+        
+        // Load local storage if any
+        const savedProfile = localStorage.getItem("teacher_profile");
+        if (savedProfile) {
+            setProfile(JSON.parse(savedProfile));
         }
         setLoading(false);
     }, []);
@@ -60,19 +70,26 @@ export default function TeacherProfilePage() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        localStorage.setItem("teacher_profile", JSON.stringify(profile));
         setSaved(true);
         // In a real app, we would send this to the API
         // For now, we simulate success
         setTimeout(() => setSaved(false), 3000);
     };
 
-    if (loading) return <div className="p-10 text-center">جاري التحميل...</div>;
+    if (loading) return <div className="p-10 text-center text-emerald-900 font-bold">جاري التحميل...</div>;
 
     return (
         <main className="site-container py-10" dir="rtl">
-            <header className="mb-8">
-                <h1 className="text-3xl font-black text-emerald-950">تعديل الملف الشخصي</h1>
-                <p className="mt-2 text-slate-600">هذه البيانات هي التي ستظهر للطلاب في أقسام المنصة المختلفة.</p>
+            <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-black text-emerald-950">تعديل الملف الشخصي</h1>
+                    <p className="mt-2 text-slate-600">هذه البيانات هي التي ستظهر للطلاب في أقسام المنصة المختلفة.</p>
+                </div>
+                <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold border transition-colors ${profile.status === 'نشط' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+                    <span className={`h-2.5 w-2.5 rounded-full ${profile.status === 'نشط' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                    حالة الحساب: {profile.status}
+                </div>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -80,7 +97,7 @@ export default function TeacherProfilePage() {
                 <aside className="lg:col-span-1">
                     <div className="sticky top-28">
                         <h2 className="mb-4 text-sm font-bold text-emerald-700 uppercase tracking-wider">معاينة البطاقة للطلاب</h2>
-                        <article className="modern-card flex flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/60 shadow-xl shadow-emerald-900/5">
+                        <article className="modern-card flex flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/60 shadow-xl shadow-emerald-900/5 transition-opacity duration-300" style={{ opacity: profile.status === 'إجازة' ? 0.7 : 1 }}>
                             <div className="relative p-6 pb-4 border-b border-emerald-100 flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-2xl font-black text-white shadow-lg overflow-hidden border-2 border-white">
@@ -89,10 +106,16 @@ export default function TeacherProfilePage() {
                                         ) : (
                                             <span>{profile.name?.charAt(0) || "م"}</span>
                                         )}
+                                        {profile.status === 'إجازة' && (
+                                            <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center text-[10px] font-bold text-white backdrop-blur-[1px]">إجازة</div>
+                                        )}
                                     </div>
                                     <div className="flex flex-col">
                                         <h3 className="font-bold text-lg text-emerald-950">{profile.name || "اسم المعلم"}</h3>
-                                        <span className="text-xs font-medium text-emerald-600/80 mt-0.5">رمز التقدم: <span dir="ltr">NEW-PRO</span></span>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                             <span className={`h-1.5 w-1.5 rounded-full ${profile.status === 'نشط' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                                             <span className={`text-[10px] font-bold ${profile.status === 'نشط' ? 'text-emerald-600' : 'text-slate-500'}`}>{profile.status === 'نشط' ? 'متاح الآن' : 'في إجازة حالياً'}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-bold text-amber-600 border border-amber-200/50">
@@ -116,13 +139,42 @@ export default function TeacherProfilePage() {
                                 </div>
                             </div>
                         </article>
+                        {profile.status === 'إجازة' && (
+                            <div className="mt-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold text-center">
+                                تنبيه: عند تفعيل وضع "إجازة"، سيعرف الطلاب أنك غير متاح حالياً لاستقبال حصص جديدة.
+                            </div>
+                        )}
                     </div>
                 </aside>
 
                 {/* Edit Form */}
                 <section className="lg:col-span-2">
                     <form onSubmit={handleSubmit} className="modern-card rounded-3xl border border-white/70 p-8 shadow-xl shadow-emerald-900/5 space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        {/* Status Toggle Block */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-bold text-emerald-900">حالة التواجد الحالية</label>
+                            <div className="flex p-1.5 bg-emerald-50/50 rounded-2xl border border-emerald-100 max-w-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => { setProfile({...profile, status: "نشط"}); setSaved(false); }}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${profile.status === 'نشط' ? 'bg-white text-emerald-700 shadow-md' : 'text-slate-500 hover:text-emerald-600'}`}
+                                >
+                                    <span className={`h-2 w-2 rounded-full ${profile.status === 'نشط' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                                    نشط
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setProfile({...profile, status: "إجازة"}); setSaved(false); }}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${profile.status === 'إجازة' ? 'bg-white text-slate-700 shadow-md' : 'text-slate-500 hover:text-slate-600'}`}
+                                >
+                                    <span className={`h-2 w-2 rounded-full ${profile.status === 'إجازة' ? 'bg-slate-500' : 'bg-slate-300'}`}></span>
+                                    إجازة
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-emerald-50">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-emerald-900">الاسم الظاهر</label>
                                 <input

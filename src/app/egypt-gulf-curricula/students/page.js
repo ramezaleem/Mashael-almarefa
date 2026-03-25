@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import TeacherNavbar from "../../teacher/teacher-navbar";
+import Footer from "@/components/footer";
 
 const NAV_LINKS = [
     { label: "طلاب القسم", href: "/egypt-gulf-curricula/students" },

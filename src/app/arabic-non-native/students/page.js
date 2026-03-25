@@ -240,7 +240,7 @@ export default function ArabicStudentsListPage() {
             )}
 
             <div className="mt-auto w-full relative z-20">
-                <FooterSection />
+                <Footer />
             </div>
         </main>
     );

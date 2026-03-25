@@ -1,16 +1,26 @@
-const ADMIN_STATS = [
-  { label: "إجمالي الطلاب", value: "248", delta: "+12 هذا الأسبوع" },
-  { label: "المعلمون النشطون", value: "18", delta: "+2 هذا الشهر" },
-  { label: "الحصص اليوم", value: "34", delta: "26 مكتملة" },
-];
+"use client";
 
-const PENDING_TASKS = [
-  "مراجعة طلبي تسجيل جديدين في قسم غير الناطقين بالعربية",
-  "اعتماد خطة اختبارات الحفظ للأسبوع القادم",
-  "تأكيد جدول المعلمين لشهر مارس 2026",
-];
+import { useState, useEffect } from "react";
 
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState([
+    { label: "إجمالي الطلاب", value: "248", delta: "+12 هذا الأسبوع", key: "total_students" },
+    { label: "المعلمون النشطون", value: "18", delta: "+2 هذا الشهر", key: "active_teachers" },
+    { label: "الحصص المكتملة", value: "34", delta: "تحديث تلقائي", key: "admin_total_sessions" },
+  ]);
+
+  useEffect(() => {
+    // Read dynamic values from localStorage
+    const savedSessions = localStorage.getItem("admin_total_sessions") || "34";
+    setStats(prev => prev.map(s => s.key === "admin_total_sessions" ? { ...s, value: savedSessions } : s));
+  }, []);
+
+  const PENDING_TASKS = [
+    "مراجعة طلبي تسجيل جديدين في قسم غير الناطقين بالعربية",
+    "اعتماد خطة اختبارات الحفظ للأسبوع القادم",
+    "تأكيد جدول المعلمين لشهر مارس 2026",
+  ];
+
   return (
     <main className="site-container py-10" dir="rtl">
       <section className="modern-card rounded-3xl border border-white/70 p-6 shadow-xl shadow-emerald-900/5 sm:p-8">
@@ -22,7 +32,7 @@ export default function AdminDashboardPage() {
       </section>
 
       <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {ADMIN_STATS.map((stat) => (
+        {stats.map((stat) => (
           <article key={stat.label} className="modern-card rounded-2xl border border-emerald-100/70 p-5 shadow-lg shadow-emerald-900/5 hover:-translate-y-1 transition-transform">
             <p className="text-sm font-bold text-emerald-700">{stat.label}</p>
             <p className="mt-1 text-3xl font-black text-emerald-950">{stat.value}</p>

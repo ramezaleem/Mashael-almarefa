@@ -1,14 +1,18 @@
-const TEACHER_STATS = [
-    { label: "إجمالي الحصص", value: "24", delta: "هذا الأسبوع" },
-    { label: "الطلاب النشطون", value: "18", delta: "معك في 3 أقسام" },
-    { label: "الحصص اليوم", value: "4", delta: "2 مكتملة" },
-    { label: "التقييم العام", value: "4.8/5", delta: "تحسن ملحوظ" },
+"use client";
+
+import { useState, useEffect } from "react";
+
+const INITIAL_STATS = [
+    { label: "إجمالي الحصص", value: "24", key: "total_sessions" },
+    { label: "الطلاب النشطون", value: "18", key: "active_students" },
+    { label: "الحصص اليوم", value: "4", key: "today_sessions" },
+    { label: "التقييم العام", value: "4.8/5", key: "rating" },
 ];
 
-const UPCOMING_CLASSES = [
-    { student: "أحمد محمود", course: "ركن القرآن", time: "10:00 صباحاً", meetLink: "https://meet.google.com/new" },
-    { student: "منى علي", course: "المناهج الدراسية", time: "01:00 مساءً", meetLink: "https://meet.google.com/new" },
-    { student: "عمر خالد", course: "اللغة العربية", time: "05:30 مساءً", meetLink: "https://meet.google.com/new" },
+const INITIAL_CLASSES = [
+    { id: 1, student: "أحمد محمود", course: "ركن القرآن", time: "10:00 صباحاً", meetLink: "https://meet.google.com/new" },
+    { id: 2, student: "منى علي", course: "المناهج الدراسية", time: "01:00 مساءً", meetLink: "https://meet.google.com/new" },
+    { id: 3, student: "عمر خالد", course: "اللغة العربية", time: "05:30 مساءً", meetLink: "https://meet.google.com/new" },
 ];
 
 const LATEST_NOTIFICATIONS = [
@@ -18,6 +22,33 @@ const LATEST_NOTIFICATIONS = [
 ];
 
 export default function TeacherDashboardPage() {
+    const [classes, setClasses] = useState(INITIAL_CLASSES);
+    const [stats, setStats] = useState(INITIAL_STATS);
+
+    useEffect(() => {
+        const savedSessions = localStorage.getItem("admin_total_sessions") || "34";
+        setStats(prev => prev.map(s => s.key === "total_sessions" ? { ...s, value: (parseInt(s.value) + (parseInt(localStorage.getItem("teacher_done_count") || "0"))).toString() } : s));
+    }, []);
+
+    const markAttendance = (id) => {
+        // Update local teacher state
+        setClasses(prev => prev.filter(c => c.id !== id));
+        
+        // Simulating sync with Admin
+        const currentAdminTotal = parseInt(localStorage.getItem("admin_total_sessions") || "34");
+        localStorage.setItem("admin_total_sessions", (currentAdminTotal + 1).toString());
+        
+        // Increment teacher's own done count
+        const teacherDone = parseInt(localStorage.getItem("teacher_done_count") || "0");
+        localStorage.setItem("teacher_done_count", (teacherDone + 1).toString());
+
+        // Also update teacher 1 stats specifically (simulated)
+        const teacher1Sessions = parseInt(localStorage.getItem("teacher_1_sessions") || "45");
+        localStorage.setItem("teacher_1_sessions", (teacher1Sessions + 1).toString());
+
+        alert("تم تسجيل الحضور بنجاح! سيتم تحديث عدد الحصص عند الأدمن.");
+    };
+
     return (
         <main className="site-container py-10" dir="rtl">
             <section className="modern-card rounded-3xl border border-white/70 p-6 shadow-xl shadow-emerald-900/5 sm:p-8">
@@ -39,25 +70,12 @@ export default function TeacherDashboardPage() {
                 </div>
             </section>
 
-            {/* Profile Completion Prompt */}
-            <section className="mt-6">
-                <div className="modern-card rounded-3xl bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 shadow-xl text-white">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="text-right">
-                            <h2 className="text-xl font-bold">أكمل ملفك الشخصي الآن!</h2>
-                            <p className="mt-1 text-emerald-50 opacity-90 text-sm">اجذب المزيد من الطلاب بإضافة مهاراتك، خبراتك، ومواعيدك المتاحة.</p>
-                        </div>
-                        <a href="/teacher/profile" className="shrink-0 bg-white text-emerald-600 px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-50 transition-colors shadow-lg">تعديل الملف الشخصي</a>
-                    </div>
-                </div>
-            </section>
-
             <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {TEACHER_STATS.map((stat) => (
+                {stats.map((stat) => (
                     <article key={stat.label} className="modern-card rounded-2xl border border-emerald-100/70 p-5 shadow-lg shadow-emerald-900/5 hover:-translate-y-1 transition-transform">
                         <p className="text-sm font-bold text-emerald-700">{stat.label}</p>
                         <p className="mt-1 text-3xl font-black text-emerald-950">{stat.value}</p>
-                        <p className="mt-1 text-xs text-slate-600">{stat.delta}</p>
+                        <p className="mt-1 text-xs text-slate-600">{stat.delta || "تحديث تلقائي"}</p>
                     </article>
                 ))}
             </section>
@@ -66,24 +84,31 @@ export default function TeacherDashboardPage() {
                 <article className="modern-card rounded-3xl border border-white/70 p-6 shadow-xl shadow-emerald-900/5 lg:col-span-2">
                     <h2 className="text-xl font-black text-emerald-950">الحلقات / الحصص القادمة</h2>
                     <ul className="mt-4 space-y-3 text-sm text-slate-700">
-                        {UPCOMING_CLASSES.map((cls, idx) => (
-                            <li key={idx} className="flex items-center justify-between rounded-2xl border border-emerald-100 bg-white/70 p-4 transition-colors hover:bg-emerald-50/50">
+                        {classes.length > 0 ? classes.map((cls) => (
+                            <li key={cls.id} className="flex flex-col gap-4 rounded-2xl border border-emerald-100 bg-white/70 p-4 transition-colors hover:bg-emerald-50/50 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex flex-col">
                                     <span className="font-bold text-emerald-950">{cls.student}</span>
                                     <span className="text-xs text-slate-500 mt-1">{cls.course}</span>
                                 </div>
-                                <div className="flex flex-col items-end">
+                                <div className="flex flex-wrap items-center gap-2">
                                     <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-100/80 px-2 py-1 text-xs font-bold text-emerald-700">
                                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         {cls.time}
                                     </span>
-                                    <a href={cls.meetLink || "https://meet.google.com/new"} target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors">
+                                    <a href={cls.meetLink || "https://meet.google.com/new"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors">
                                         دخول لجوجل ميت
-                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     </a>
+                                    <button 
+                                        onClick={() => markAttendance(cls.id)}
+                                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors"
+                                    >
+                                        تسجيل حضور
+                                    </button>
                                 </div>
                             </li>
-                        ))}
+                        )) : (
+                            <p className="py-10 text-center text-slate-500">لا توجد حصص مجدولة حالياً.</p>
+                        )}
                     </ul>
                 </article>
 
