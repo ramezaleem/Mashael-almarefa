@@ -11,11 +11,18 @@ export default function CoursesCenterPage() {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [formData, setFormData] = useState({
         title: "",
-        category: "",
+        date: new Date().toISOString().split('T')[0],
         videoFile: null,
         thumbnailFile: null,
         notes: ""
     });
+
+    const ADMIN_LINKS = [
+        { label: "لوحة الإدارة", href: "/admin/dashboard" },
+        { label: "لوحة التحكم", href: "/admin" },
+        { label: "تقارير المعلمين", href: "/admin/teacher-sessions" },
+        { label: "مركز الدورات", href: "/courses-center" },
+    ];
 
     useEffect(() => {
         const savedCourses = JSON.parse(localStorage.getItem("platform_courses") || "[]");
@@ -24,23 +31,10 @@ export default function CoursesCenterPage() {
         setVideos(savedVideos);
     }, []);
 
-    const handleFileChange = (e) => {
-        const field = e.target.name;
-        const file = e.target.files[0];
-        
-        if (file && field === 'videoFile' && file.size > 100 * 1024 * 1024) {
-            Swal.fire("خطأ", "حجم الفيديو يتجاوز 100 ميجابايت", "error");
-            e.target.value = "";
-            return;
-        }
-
-        setFormData(prev => ({ ...prev, [field]: file }));
-    };
-
     const handleUpload = async (e) => {
         e.preventDefault();
         if (!formData.videoFile || !formData.title) {
-            Swal.fire("تنبيه", "يرجى اختيار مادة تعليمية وفيديو للرفع", "warning");
+            Swal.fire("تنبيه", "يرجى استكمال البيانات المطلوبة", "warning");
             return;
         }
 
@@ -48,7 +42,6 @@ export default function CoursesCenterPage() {
         setUploadProgress(0);
 
         try {
-            // Using XMLHttpRequest for progress tracking
             const xhr = new XMLHttpRequest();
             const data = new FormData();
             data.append("file", formData.videoFile);
@@ -76,35 +69,37 @@ export default function CoursesCenterPage() {
 
             const result = await uploadPromise;
 
-            // Handle metadata save (Simulating Postgres insert / Server Action)
             const newVideo = {
                 id: Date.now(),
                 title: formData.title,
-                category: formData.category,
                 videoUrl: result.url,
-                thumbnailUrl: "/Logo.jpeg", // Placeholder
+                thumbnailUrl: "/Logo.jpeg",
                 notes: formData.notes,
-                date: new Date().toLocaleDateString("ar-EG")
+                date: formData.date
             };
 
             const updatedVideos = [newVideo, ...videos];
             setVideos(updatedVideos);
             localStorage.setItem("platform_videos", JSON.stringify(updatedVideos));
 
-            // Sync courses if new
             if (!courses.includes(formData.title)) {
                 const updatedCourses = [...courses, formData.title];
                 setCourses(updatedCourses);
                 localStorage.setItem("platform_courses", JSON.stringify(updatedCourses));
             }
 
-            Swal.fire("تم بنجاح", "تم رفع الفيديو وحفظ البيانات بنجاح", "success");
-            setFormData({ title: "", category: "", videoFile: null, thumbnailFile: null, notes: "" });
+            Swal.fire("تم بنجاح", "تم رفع الفيديو والملاحظات بنجاح", "success");
+            setFormData({ 
+                title: "", 
+                date: new Date().toISOString().split('T')[0], 
+                videoFile: null, 
+                thumbnailFile: null, 
+                notes: "" 
+            });
             e.target.reset();
 
         } catch (error) {
-            console.error(error);
-            Swal.fire("خطأ", "فشل عملية الرفع، يرجى المحاولة لاحقاً", "error");
+            Swal.fire("خطأ", "فشل الرفع، يرجى المحاولة لاحقاً", "error");
         } finally {
             setIsUploading(false);
             setUploadProgress(0);
@@ -112,135 +107,151 @@ export default function CoursesCenterPage() {
     };
 
     return (
-        <main className="min-h-screen bg-[#f8fbfb] pb-20" dir="rtl">
-            <AdminNavbar />
+        <main className="min-h-screen bg-gradient-to-b from-[#f7fbfb] via-[#eef6f6] to-[#e8f2f2]" dir="rtl">
+            <AdminNavbar sectionTitle="مركز الدورات" links={ADMIN_LINKS} />
             
-            <div className="site-container pt-10">
-                <header className="mb-10 text-center">
-                    <h1 className="text-3xl font-black text-emerald-950 sm:text-4xl">مركز رفع الدورات</h1>
-                    <p className="mt-4 text-slate-600">إدارة محتوى الفيديو والمواد التعليمية للمنصة</p>
+            <div className="site-container pt-28 pb-20">
+                <header className="mb-12 text-center animate-fade-in-up">
+                    <p className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1 text-xs font-bold text-emerald-700 mb-4">
+                        نظام إدارة المحتوى التعليمي
+                    </p>
+                    <h1 className="text-3xl font-black text-[#1a2e2a] sm:text-4xl">رفع الفيديوهات والملاحظات</h1>
+                    <p className="mt-4 text-[#7a8c88] font-medium leading-relaxed max-w-2xl mx-auto">
+                        يرجى اختيار الدورة ورفع الفيديو الخاص بها مع إضافة أي ملاحظات توضيحية.
+                    </p>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Add Content Form */}
-                    <div className="lg:col-span-1">
-                        <section className="modern-card sticky top-28 rounded-3xl border border-white bg-white/70 p-6 shadow-xl shadow-emerald-900/5">
-                            <h2 className="mb-6 text-xl font-bold text-emerald-900 border-b border-emerald-50 pb-3">إضافة فيديو جديد</h2>
-                            <form onSubmit={handleUpload} className="space-y-5 text-right">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">اسم المادة / الدورة</label>
+                <div className="max-w-4xl mx-auto animate-fade-in-up stagger-1">
+                    <section className="modern-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-emerald-900/5">
+                        <form onSubmit={handleUpload} className="relative z-10 space-y-8">
+                            {/* Row 1: Course Name & Date */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-[#1a2e2a]">
+                                        اسم الدورة <span className="text-red-500">*</span>
+                                    </label>
                                     <input 
                                         type="text" 
-                                        list="courses-list"
-                                        name="title"
+                                        list="courses-datalist"
                                         value={formData.title}
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                        className="w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 outline-none focus:border-emerald-500"
-                                        placeholder="مثلاً: نور البيان"
+                                        className="w-full rounded-2xl border border-[#e6efed] bg-white px-5 py-4 outline-none focus:border-emerald-500 transition-all placeholder:text-[#b4c3c0]"
+                                        placeholder="أدخل اسم الدورة..."
                                         required
                                     />
-                                    <datalist id="courses-list">
+                                    <datalist id="courses-datalist">
                                         {courses.map(c => <option key={c} value={c} />)}
                                     </datalist>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">التصنيف</label>
-                                    <select 
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                        className="w-full rounded-xl border border-emerald-100 bg-white px-4 py-3 outline-none focus:border-emerald-500"
-                                    >
-                                        <option value="">-- اختر التصنيف --</option>
-                                        <option value="قرآن كريم">قرآن كريم</option>
-                                        <option value="لغة عربية">لغة عربية</option>
-                                        <option value="مناهج مصرية">مناهج مصرية</option>
-                                        <option value="مناهج خليجية">مناهج خليجية</option>
-                                    </select>
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-[#1a2e2a]">
+                                        تاريخ الإضافة <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="date" 
+                                        value={formData.date}
+                                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                                        className="w-full rounded-2xl border border-[#e6efed] bg-white px-5 py-4 outline-none focus:border-emerald-500 transition-all text-[#1a2e2a]"
+                                        required
+                                    />
                                 </div>
+                            </div>
 
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">فيديو الدرس (MP4, Max 100MB)</label>
+                            {/* Row 2: Video & Thumbnail Upload Boxes */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-[#1a2e2a]">
+                                        رفع فيديو الدورة <span className="text-red-500">*</span>
+                                    </label>
                                     <div className="relative">
                                         <input 
                                             type="file" 
-                                            name="videoFile"
                                             accept="video/mp4"
-                                            onChange={handleFileChange}
-                                            required
+                                            onChange={(e) => setFormData({...formData, videoFile: e.target.files[0]})}
                                             className="hidden" 
                                             id="video-upload"
                                         />
                                         <label 
                                             htmlFor="video-upload" 
-                                            className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/30 px-4 py-8 transition-all hover:bg-emerald-50 hover:border-emerald-400"
+                                            className="flex flex-col items-center justify-center h-48 cursor-pointer rounded-2xl border-2 border-dashed border-emerald-100 bg-emerald-50/20 hover:bg-emerald-50 hover:border-emerald-400 transition-all group"
                                         >
-                                            <div className="text-center">
-                                                <svg className="mx-auto h-8 w-8 text-emerald-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            <div className="bg-white shadow-sm p-3 rounded-full mb-3 group-hover:scale-110 transition-transform border border-emerald-50">
+                                                <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                 </svg>
-                                                <span className="text-sm font-bold text-emerald-700">
-                                                    {formData.videoFile ? formData.videoFile.name : "اضغط لرفع فيديو الدرس"}
-                                                </span>
                                             </div>
+                                            <span className="text-sm font-bold text-[#7a8c88]">
+                                                {formData.videoFile ? formData.videoFile.name : "اضغط لرفع الفيديو"}
+                                            </span>
                                         </label>
                                     </div>
                                 </div>
 
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-[#1a2e2a]">
+                                        صورة مصغرة <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <input 
+                                            type="file" 
+                                            accept="image/*"
+                                            onChange={(e) => setFormData({...formData, thumbnailFile: e.target.files[0]})}
+                                            className="hidden" 
+                                            id="thumb-upload"
+                                        />
+                                        <label 
+                                            htmlFor="thumb-upload" 
+                                            className="flex flex-col items-center justify-center h-48 cursor-pointer rounded-2xl border-2 border-dashed border-emerald-100 bg-emerald-50/20 hover:bg-emerald-50 hover:border-emerald-400 transition-all group"
+                                        >
+                                            <div className="bg-white shadow-sm p-3 rounded-full mb-3 group-hover:scale-110 transition-transform border border-emerald-50">
+                                                <svg className="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a1 1 0 011.414 0L14 15m-4-4l1-1a1 1 0 011.414 0L18 17M7 21h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-sm font-bold text-[#7a8c88]">
+                                                {formData.thumbnailFile ? formData.thumbnailFile.name : "اضغط لرفع صورة مصغرة"}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 3: Notes Area */}
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-[#1a2e2a]">ملاحظات الدورة / وصف الفيديو</label>
+                                <textarea 
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                    className="w-full h-40 rounded-2xl border border-[#e6efed] bg-white px-5 py-4 outline-none focus:border-emerald-500 transition-all placeholder:text-[#b4c3c0] resize-none"
+                                    placeholder="أضف وصفاً للفيديو أو أي ملاحظات هامة للمتدربين..."
+                                />
+                            </div>
+
+                            {/* Progress & Submit */}
+                            <div className="pt-4 flex flex-col items-center gap-6">
                                 {isUploading && (
-                                    <div className="mt-4">
-                                        <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                                    <div className="w-full max-w-md">
+                                        <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
                                             <div 
-                                                className="h-full bg-emerald-500 transition-all duration-300"
+                                                className="h-full bg-emerald-500 transition-all duration-300 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                                                 style={{ width: `${uploadProgress}%` }}
                                             />
                                         </div>
-                                        <p className="mt-2 text-center text-xs font-bold text-emerald-600">جاري الرفع: {uploadProgress}%</p>
+                                        <p className="mt-2 text-center text-xs font-black text-emerald-600">جاري الرفع بنجاح: {uploadProgress}%</p>
                                     </div>
                                 )}
 
                                 <button 
-                                    type="submit"
+                                    type="submit" 
                                     disabled={isUploading}
-                                    className="w-full rounded-xl bg-emerald-600 py-3.5 font-bold text-white shadow-lg transition-all hover:bg-emerald-500 disabled:bg-slate-300"
+                                    className="glow-button w-full max-w-sm rounded-2xl bg-emerald-600 py-4.5 font-black text-white text-lg shadow-xl shadow-emerald-900/10 hover:bg-emerald-700 transition-all transform hover:-translate-y-1 active:scale-95 disabled:bg-slate-300 disabled:transform-none"
                                 >
                                     {isUploading ? "جاري المعالجة..." : "حفظ ورفع المحتوى"}
                                 </button>
-                            </form>
-                        </section>
-                    </div>
-
-                    {/* Content List */}
-                    <div className="lg:col-span-2">
-                        <section className="modern-card rounded-3xl border border-white bg-white/70 p-6 shadow-xl shadow-emerald-900/5">
-                            <h2 className="mb-6 text-xl font-bold text-emerald-900">المحتوى الأخير</h2>
-                            <div className="space-y-4">
-                                {videos.map(video => (
-                                    <article key={video.id} className="flex gap-4 rounded-2xl border border-emerald-50 bg-white p-4 transition-all hover:shadow-md">
-                                        <div className="h-24 w-40 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                                            <video src={video.videoUrl} className="h-full w-full object-cover" />
-                                        </div>
-                                        <div className="flex flex-1 flex-col justify-between">
-                                            <div>
-                                                <div className="flex items-center justify-between">
-                                                   <h3 className="font-bold text-emerald-950">{video.title}</h3>
-                                                   <span className="text-xs font-bold text-slate-400">{video.date}</span>
-                                                </div>
-                                                <span className="mt-1 inline-block rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">{video.category}</span>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button className="text-xs font-bold text-emerald-600 hover:underline">تعديل</button>
-                                                <button className="text-xs font-bold text-red-500 hover:underline">حذف</button>
-                                            </div>
-                                        </div>
-                                    </article>
-                                ))}
-                                {videos.length === 0 && (
-                                    <div className="py-20 text-center text-slate-500">لا يوجد محتوى مرفوع حالياً</div>
-                                )}
                             </div>
-                        </section>
-                    </div>
+                        </form>
+                    </section>
                 </div>
             </div>
         </main>
