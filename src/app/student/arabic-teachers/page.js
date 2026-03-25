@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import TeacherBio from "@/components/teacher-bio";
 
 const TEACHERS_DATA = [
     {
@@ -12,7 +13,7 @@ const TEACHERS_DATA = [
         phone: "201210212176",
         rating: "4.9",
         image: "",
-        bio: "متخصص في تأسيس اللغة العربية للناطقين بغيرها، وتدريب الطلاب على المحادثة والقراءة من الصفر."
+        bio: "متخصص في تأسيس اللغة العربية للناطقين بغيرها، وتدريب الطلاب على المحادثة والقراءة من الصفر بأسلوب متميز وشيق يسهل على الطالب استيعاب القواعد اللغوية بشكل تدريجي."
     },
     {
         id: "ARB-T-002",
@@ -22,7 +23,7 @@ const TEACHERS_DATA = [
         phone: "201210212176",
         rating: "4.8",
         image: "",
-        bio: "معلمة متخصصة في تطوير مهارات الاستماع والتحدث وتصحيح اللهجات وتنمية الحصيلة اللغوية."
+        bio: "معلمة متخصصة في تطوير مهارات الاستماع والتحدث وتصحيح اللهجات وتنمية الحصيلة اللغوية. خبرة في استخدام الوسائل التعليمية الحديثة والقصص التفاعلية لتعليم العربية."
     },
 ];
 
@@ -95,9 +96,7 @@ export default function ArabicTeachersPage() {
 
                                 {/* Card Body (Bio + Specialization + Availability) */}
                                 <div className="p-6 flex-1 flex flex-col gap-5">
-                                    <p className="text-sm text-slate-600 leading-relaxed text-balance">
-                                        {teacher.bio}
-                                    </p>
+                                    <TeacherBio bio={teacher.bio} />
 
                                     <div className="mt-auto flex flex-col gap-3 text-sm">
                                         <div className="flex items-start gap-2">

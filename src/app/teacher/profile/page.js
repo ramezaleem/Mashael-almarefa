@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import TeacherBio from "@/components/teacher-bio";
 
 export default function TeacherProfilePage() {
     const router = useRouter();
@@ -102,9 +103,7 @@ export default function TeacherProfilePage() {
                                 </div>
                             </div>
                             <div className="p-6 flex-1 flex flex-col gap-5">
-                                <p className="text-sm text-slate-600 leading-relaxed min-h-[60px]">
-                                    {profile.bio || "اكتب نبذة عن خبراتك ومؤهلاتك العلمية لتظهر هنا للطلاب..."}
-                                </p>
+                                <TeacherBio bio={profile.bio || "اكتب نبذة عن خبراتك ومؤهلاتك العلمية لتظهر هنا للطلاب..."} />
                                 <div className="mt-auto flex flex-col gap-3 text-sm">
                                     <div className="flex items-start gap-2">
                                         <div className="mt-0.5 rounded-full bg-emerald-100 p-1 text-emerald-600 shrink-0"><svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg></div>
