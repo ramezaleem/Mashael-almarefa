@@ -21,13 +21,12 @@ export default function StudentNavbar({ sectionTitle, links, ctaLabel, ctaHref }
                         const decoded = decodeURIComponent(atob(base64));
                         const data = JSON.parse(decoded);
                         
-                        // Check for local profile image
+                        // Check for local profile updates (image, name, etc.)
                         const localProfile = localStorage.getItem(`student_profile_${data.email}`);
                         if (localProfile) {
                             const parsedLocal = JSON.parse(localProfile);
-                            if (parsedLocal.image) {
-                                data.image = parsedLocal.image;
-                            }
+                            if (parsedLocal.image) data.image = parsedLocal.image;
+                            if (parsedLocal.name) data.name = parsedLocal.name;
                         }
                         
                         setSession(data);

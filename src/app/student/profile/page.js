@@ -129,7 +129,20 @@ export default function StudentProfilePage() {
 
   const handleSave = (e) => {
     e.preventDefault();
+    // Update individual profile file
     localStorage.setItem(`student_profile_${student.email}`, JSON.stringify(student));
+    
+    // Update global app_users database
+    const { getLocalUsers, saveLocalUsers } = require("@/utils/local-db");
+    const allUsers = getLocalUsers();
+    const updatedUsers = allUsers.map(u => {
+        if (u.email === student.email) return { ...u, name: student.name };
+        return u;
+    });
+    saveLocalUsers(updatedUsers);
+
+    // Sync navbar and local display
+    window.dispatchEvent(new Event('profileUpdate'));
     setIsEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);

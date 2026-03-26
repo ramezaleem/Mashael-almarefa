@@ -29,6 +29,15 @@ export default function StudentDashboardPage() {
         const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
         const decoded = decodeURIComponent(atob(base64));
         const data = JSON.parse(decoded);
+        
+        // Load latest profile updates from localStorage
+        const profileRecord = localStorage.getItem(`student_profile_${data.email}`);
+        if (profileRecord) {
+            const parsed = JSON.parse(profileRecord);
+            if (parsed.name) data.name = parsed.name;
+            if (parsed.image) data.image = parsed.image;
+        }
+
         setSession(data);
 
         // Fetch progress from localStorage using email
