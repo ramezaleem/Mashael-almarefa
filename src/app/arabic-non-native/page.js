@@ -1,19 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import TeacherNavbar from "../teacher/teacher-navbar";
 import Footer from "@/components/footer";
 
 // ─── Static Data (module-level, never re-created) ─────────────────────────────
-
-const STUDENTS = [
-  { name: "أحمد محمود", email: "ahmed@example.com" },
-  { name: "عمر عبد الله", email: "omar.ara@example.com" },
-  { name: "فاطمة علي", email: "fatma.ara@example.com" },
-  { name: "زينب حسن", email: "zainab.ara@example.com" },
-  { name: "يوسف طارق", email: "youssef.ara@example.com" },
-];
 
 const TOPICS = [
   "حفظ سورة البقرة",
@@ -161,8 +153,8 @@ function SessionForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
             <option value="" disabled hidden className="text-slate-400">
               -- اختر من القائمة --
             </option>
-            {STUDENTS.map((s) => (
-              <option key={s.email} value={s.name} className="bg-white text-emerald-950">
+            {students.map((s) => (
+              <option key={s.email} value={s.email} className="bg-white text-emerald-950">
                 {s.name}
               </option>
             ))}
@@ -394,10 +386,17 @@ function FooterSection() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ArabicNonNativePage() {
+  const [students, setStudents] = useState([]);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    const { getLocalUsers } = require("@/utils/local-db");
+    const all = getLocalUsers();
+    setStudents(all.filter(u => u.role === "student" && u.course === "اللغة العربية لغير الناطقين"));
+  }, []);
 
   // Stable references — won't trigger child re-renders on each parent render
   const handleChange = useCallback((e) => {

@@ -6,12 +6,13 @@ export default async function TeacherLayout({ children }) {
   const sessionCookie = cookieStore.get("session");
   let teacherLinks = [];
 
+  let sessionData = null;
   if (sessionCookie) {
     try {
       const base64Str = sessionCookie.value;
       const uriEncodedStr = Buffer.from(base64Str, "base64").toString("utf8");
       const jsonStr = decodeURIComponent(uriEncodedStr);
-      const sessionData = JSON.parse(jsonStr);
+      sessionData = JSON.parse(jsonStr);
       const course = sessionData.course;
 
       if (course === "ركن القرآن الكريم" || course === "ركن القرآن") {
@@ -56,7 +57,7 @@ export default async function TeacherLayout({ children }) {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#f8fbfb] via-[#f2f8f8] to-[#eef5f5]">
-      <TeacherNavbar sectionTitle="بوابة المعلمين" links={teacherLinks} />
+      <TeacherNavbar sectionTitle={sessionData?.course || "بوابة المعلمين"} links={teacherLinks} />
       <div className="pt-24">{children}</div>
     </div>
   );

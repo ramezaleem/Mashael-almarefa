@@ -19,14 +19,14 @@ const UPCOMING = [
 export default function StudentDashboardPage() {
   const [session, setSession] = useState(null);
   const [progressData, setProgressData] = useState({
-    attendance: "96",
-    rating: "8.6",
-    hours: "42",
-    nextLesson: "السبت 7 مارس 2026 - 6:00 م",
-    reading: 86,
-    writing: 78,
-    listening: 91,
-    conversation: 74,
+    attendance: "0",
+    rating: "0",
+    hours: "0",
+    nextLesson: "لا يوجد موعد محدد حالياً",
+    reading: 0,
+    writing: 0,
+    listening: 0,
+    conversation: 0,
     achievements: "",
     notes: ""
   });

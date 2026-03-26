@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import Swal from "sweetalert2";
+import { saveUser } from "@/utils/local-db";
 
 export default function SignupPage() {
     const [role, setRole] = useState("student");
@@ -15,7 +17,9 @@ export default function SignupPage() {
         countryCode: "+20",
         countryName: "مصر",
         department: "",
-        selectedSubjects: []
+        selectedSubjects: [],
+        guardianName: "",
+        age: ""
     });
 
     const DEPARTMENTS = [
@@ -100,15 +104,42 @@ export default function SignupPage() {
             role: role,
             department: DEPARTMENTS.find(d => d.id === formData.department)?.name || "",
             subjects: formData.selectedSubjects.map(id => CURRICULA_SUBJECTS.find(s => s.id === id)?.name).filter(Boolean),
-            course: DEPARTMENTS.find(d => d.id === formData.department)?.name || "" // Use real department name
+            course: DEPARTMENTS.find(d => d.id === formData.department)?.name || "",
+            guardianName: role === "student" ? formData.guardianName : "",
+            age: role === "student" ? formData.age : "",
+            country: formData.countryName || "مصر",
+            phone: formData.phone || "غير محدد",
+            guardianPhone: formData.guardianPhone || "",
+            countryCode: formData.countryCode || "+20",
+            guardianName: formData.fatherName || ""
         };
-        saveUser(userData);
+        const savedUserResult = saveUser(userData);
+
+        if (!savedUserResult) {
+          Swal.fire({
+            title: "عذراً!",
+            text: "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد آخر أو تسجيل الدخول.",
+            icon: "error",
+            confirmButtonText: "موافق",
+            confirmButtonColor: "#10b981"
+          });
+          return;
+        }
 
         const base64 = btoa(encodeURIComponent(JSON.stringify(userData)));
         document.cookie = `session=${encodeURIComponent(base64)}; path=/; max-age=86400`;
 
-        alert("تم إنشاء الحساب بنجاح! سيتم توجيهك إلى ملفك الشخصي.");
-        window.location.href = savedUser.redirect;
+        Swal.fire({
+          title: "تم!",
+          text: "تم إنشاء الحساب بنجاح! سيتم توجيهك الآن...",
+          icon: "success",
+          confirmButtonText: "حسناً",
+          confirmButtonColor: "#10b981",
+          timer: 2000,
+          timerProgressBar: true
+        }).then(() => {
+          window.location.href = savedUserResult.redirect;
+        });
     };
 
     return (
@@ -244,6 +275,42 @@ export default function SignupPage() {
                                 className="w-full rounded-xl border border-emerald-200 bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
                             />
                         </div>
+
+                        {role === "student" && (
+                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                <label htmlFor="guardianName" className="mb-1.5 block text-sm font-bold text-emerald-900">
+                                    اسم ولي الأمر <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="guardianName"
+                                    name="guardianName"
+                                    type="text"
+                                    placeholder="اسم ولي الأمر بالكامل"
+                                    value={formData.guardianName}
+                                    onChange={handleInputChange}
+                                    className="w-full rounded-xl border border-emerald-200 bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
+                                    required={role === "student"}
+                                />
+                            </div>
+                        )}
+
+                        {role === "student" && (
+                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                <label htmlFor="age" className="mb-1.5 block text-sm font-bold text-emerald-900">
+                                    العمر <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    id="age"
+                                    name="age"
+                                    type="number"
+                                    placeholder="مثلاً: 12"
+                                    value={formData.age}
+                                    onChange={handleInputChange}
+                                    className="w-full rounded-xl border border-emerald-200 bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
+                                    required={role === "student"}
+                                />
+                            </div>
+                        )}
 
                         <div>
                             <label htmlFor="email" className="mb-1.5 block text-sm font-bold text-emerald-900">

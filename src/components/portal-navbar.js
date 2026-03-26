@@ -83,11 +83,15 @@ export default function PortalNavbar({ sectionTitle, links = [], ctaLabel = "ا�
                   <div className="hidden sm:flex flex-col text-right">
                     <span className="text-sm font-bold text-white max-w-[100px] sm:max-w-[120px] truncate">{userSession.name}</span>
                     <span className="text-xs text-emerald-200 truncate max-w-[100px] sm:max-w-[120px]">
-                      {userSession.role === 'admin' ? 'إدارة المنصة' : userSession.role === 'teacher' ? 'بوابة المعلم' : userSession.role === 'student' ? 'بوابة الطالب' : userSession.role}
+                      {userSession.course || (userSession.role === "admin" ? "إدارة المنصة" : (userSession.role === "teacher" ? "بوابة المعلم" : "بوابة الطالب"))}
                     </span>
                   </div>
-                  <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs sm:text-sm text-white font-bold border-2 border-emerald-400 shadow-md">
-                    {userSession.name?.charAt(0) || "U"}
+                  <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs sm:text-sm text-white font-bold border-2 border-emerald-400 shadow-md overflow-hidden relative">
+                    {userSession.image ? (
+                      <img src={userSession.image} alt={userSession.name} className="h-full w-full object-cover" />
+                    ) : (
+                      userSession.name?.charAt(0) || "U"
+                    )}
                   </div>
                   <button
                     onClick={onLogout}

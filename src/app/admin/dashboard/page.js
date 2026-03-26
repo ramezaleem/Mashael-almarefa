@@ -13,20 +13,24 @@ export default function AdminDashboardPage() {
   const [newTask, setNewTask] = useState("");
 
   useEffect(() => {
-    // Read dynamic values from localStorage
-    const savedSessions = localStorage.getItem("admin_total_sessions") || "34";
-    setStats(prev => prev.map(s => s.key === "admin_total_sessions" ? { ...s, value: savedSessions } : s));
+    const { getLocalUsers } = require("@/utils/local-db");
+    const allUsers = getLocalUsers();
+    
+    const totalStudents = allUsers.filter(u => u.role === "student").length;
+    const totalTeachers = allUsers.filter(u => u.role === "teacher").length;
+    const savedSessions = localStorage.getItem("admin_total_sessions") || "0";
 
-    // Read tasks from localStorage
+    setStats([
+      { label: "إجمالي الطلاب", value: totalStudents.toString(), delta: "تحديث تلقائي", key: "total_students" },
+      { label: "المعلمون النشطون", value: totalTeachers.toString(), delta: "تحديث تلقائي", key: "active_teachers" },
+      { label: "الحصص المكتملة", value: savedSessions, delta: "تحديث تلقائي", key: "admin_total_sessions" },
+    ]);
+
     const savedTasks = localStorage.getItem("admin_tasks");
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks));
     } else {
-      setTasks([
-        "مراجعة طلبي تسجيل جديدين في قسم غير الناطقين بالعربية",
-        "اعتماد خطة اختبارات الحفظ للأسبوع القادم",
-        "تأكيد جدول المعلمين لشهر مارس 2026",
-      ]);
+      setTasks([]);
     }
   }, []);
 
