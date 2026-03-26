@@ -18,7 +18,7 @@ export default function SignupPage() {
         countryName: "مصر",
         department: "",
         selectedSubjects: [],
-        guardianName: "",
+        guardian: "",
         age: ""
     });
 
@@ -100,18 +100,17 @@ export default function SignupPage() {
         const userData = {
             name: formData.name,
             email: formData.email,
-            password: formData.password, // Store password for login check
+            password: formData.password,
             role: role,
             department: DEPARTMENTS.find(d => d.id === formData.department)?.name || "",
             subjects: formData.selectedSubjects.map(id => CURRICULA_SUBJECTS.find(s => s.id === id)?.name).filter(Boolean),
             course: DEPARTMENTS.find(d => d.id === formData.department)?.name || "",
-            guardianName: role === "student" ? formData.guardianName : "",
+            guardian: role === "student" ? formData.guardian : "",
             age: role === "student" ? formData.age : "",
             country: formData.countryName || "مصر",
             phone: formData.phone || "غير محدد",
             guardianPhone: formData.guardianPhone || "",
-            countryCode: formData.countryCode || "+20",
-            guardianName: formData.fatherName || ""
+            countryCode: formData.countryCode || "+20"
         };
         const savedUserResult = saveUser(userData);
 
@@ -282,11 +281,11 @@ export default function SignupPage() {
                                     اسم ولي الأمر <span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                    id="guardianName"
-                                    name="guardianName"
+                                    id="guardian"
+                                    name="guardian"
                                     type="text"
                                     placeholder="اسم ولي الأمر بالكامل"
-                                    value={formData.guardianName}
+                                    value={formData.guardian}
                                     onChange={handleInputChange}
                                     className="w-full rounded-xl border border-emerald-200 bg-white/85 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
                                     required={role === "student"}

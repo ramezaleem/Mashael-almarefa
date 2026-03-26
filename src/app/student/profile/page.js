@@ -76,7 +76,7 @@ export default function StudentProfilePage() {
                 ? `${data.department}${data.subjects?.length > 0 ? ` - (${data.subjects.join("، ")})` : ""}` 
                 : "بانتظار تحديد المستوى",
             email: data.email || "",
-            guardian: data.guardianName || data.fatherName || data.guardian || "غير محدد",
+            guardian: data.guardian || "غير محدد",
             age: data.age || "",
             country: data.country || data.countryName || "غير محدد",
             phone: data.phone || data.guardianPhone || "غير محدد",
@@ -85,15 +85,14 @@ export default function StudentProfilePage() {
 
         if (localData) {
             const parsedLocal = JSON.parse(localData);
-            // Merge: preserve local storage but fill missing critical signup info
             setStudent({
                 ...initialFromSession,
                 ...parsedLocal,
-                // Ensure signup info persists if local was empty
-                country: parsedLocal.country && parsedLocal.country !== "غير محدد" ? parsedLocal.country : initialFromSession.country,
-                age: parsedLocal.age && parsedLocal.age !== "" ? parsedLocal.age : initialFromSession.age,
-                fatherName: parsedLocal.fatherName && parsedLocal.fatherName !== "" ? parsedLocal.fatherName : initialFromSession.fatherName,
-                phone: parsedLocal.phone && parsedLocal.phone !== "غير محدد" ? parsedLocal.phone : initialFromSession.phone
+                // Prioritize local state but fallback to initial signup session data if local field is missing or default
+                country: (parsedLocal.country && parsedLocal.country !== "غير محدد") ? parsedLocal.country : initialFromSession.country,
+                age: (parsedLocal.age && parsedLocal.age !== "") ? parsedLocal.age : initialFromSession.age,
+                guardian: (parsedLocal.guardian && parsedLocal.guardian !== "غير محدد") ? parsedLocal.guardian : initialFromSession.guardian,
+                phone: (parsedLocal.phone && parsedLocal.phone !== "غير محدد") ? parsedLocal.phone : initialFromSession.phone
             });
         } else {
             setStudent(initialFromSession);
