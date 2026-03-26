@@ -108,7 +108,7 @@ export default function SignupPage() {
         document.cookie = `session=${encodeURIComponent(base64)}; path=/; max-age=86400`;
 
         alert("تم إنشاء الحساب بنجاح! سيتم توجيهك إلى ملفك الشخصي.");
-        window.location.href = role === "student" ? "/student/profile" : "/teacher/profile";
+        window.location.href = savedUser.redirect;
     };
 
     return (

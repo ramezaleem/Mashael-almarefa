@@ -12,14 +12,6 @@ const ALL_COURSES = [
     { id: 'c5', title: 'إعداد معلم اللغة العربية' },
 ];
 
-const initialUsers = [
-    { id: 1, name: "أحمد محمود", email: "student1@gmail.com", role: "student", course: "ركن القرآن" },
-    { id: 2, name: "منى علي", email: "student2@gmail.com", role: "student", course: "المناهج الدراسية" },
-    { id: 3, name: "عمر خالد", email: "student3@gmail.com", role: "student", course: "العربية لغير الناطقين" },
-    { id: 4, name: "الشيخ محمود زايد", email: "teacher@gmail.com", role: "teacher", course: "ركن القرآن" },
-    { id: 5, name: "أ. فاطمة سعيد", email: "fatima.s@mashael.com", role: "teacher", course: "المناهج الدراسية" },
-];
-
 export default function AdminUsersPage() {
     const [users, setUsers] = useState([]);
     const [activeTab, setActiveTab] = useState("student");
