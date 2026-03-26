@@ -22,31 +22,79 @@ const LATEST_NOTIFICATIONS = [
 ];
 
 export default function TeacherDashboardPage() {
-    const [classes, setClasses] = useState(INITIAL_CLASSES);
+    const [classes, setClasses] = useState([]);
     const [stats, setStats] = useState(INITIAL_STATS);
+    const [teacherName, setTeacherName] = useState("المعلم");
 
     useEffect(() => {
-        const savedSessions = localStorage.getItem("admin_total_sessions") || "34";
-        setStats(prev => prev.map(s => s.key === "total_sessions" ? { ...s, value: (parseInt(s.value) + (parseInt(localStorage.getItem("teacher_done_count") || "0"))).toString() } : s));
+        const { getLocalUsers } = require("@/utils/local-db");
+        const allUsers = getLocalUsers();
+
+        const cookies = document.cookie.split("; ");
+        const sessionCookie = cookies.find(c => c.startsWith("session="));
+        let session = null;
+        if (sessionCookie) {
+            try {
+                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                const decoded = decodeURIComponent(atob(base64));
+                session = JSON.parse(decoded);
+                setTeacherName(session.name);
+            } catch (e) { console.error(e); }
+        }
+
+        const deptStudents = allUsers.filter(u => u.role === "student" && u.course === session?.course);
+        const teacherDoneCount = localStorage.getItem(`teacher_done_${session?.email}`) || "0";
+
+        setStats([
+            { label: "إجمالي الحصص", value: teacherDoneCount, key: "total_sessions" },
+            { label: "الطلاب النشطون", value: deptStudents.length.toString(), key: "active_students" },
+            { label: "التقييم العام", value: "4.9/5", key: "rating" },
+            { label: "القسم", value: session?.course || "عام", key: "department" },
+        ]);
+
+        if (deptStudents.length > 0) {
+            const dynamicClasses = deptStudents.slice(0, 3).map((s, idx) => ({
+                id: s.id || idx,
+                student: s.name,
+                course: s.course,
+                time: "10:00 صباحاً",
+                meetLink: "https://meet.google.com/new"
+            }));
+            setClasses(dynamicClasses);
+        } else {
+            setClasses([]);
+        }
     }, []);
 
     const markAttendance = (id) => {
-        // Update local teacher state
+        const cookies = document.cookie.split("; ");
+        const sessionCookie = cookies.find(c => c.startsWith("session="));
+        let email = "guest";
+        if (sessionCookie) {
+            try {
+                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                const decoded = decodeURIComponent(atob(base64));
+                email = JSON.parse(decoded).email;
+            } catch {}
+        }
+
+        const teacherDone = parseInt(localStorage.getItem(`teacher_done_${email}`) || "0");
+        localStorage.setItem(`teacher_done_${email}`, (teacherDone + 1).toString());
+
+        const adminSessions = parseInt(localStorage.getItem("admin_total_sessions") || "0");
+        localStorage.setItem("admin_total_sessions", (adminSessions + 1).toString());
+
         setClasses(prev => prev.filter(c => c.id !== id));
         
-        // Simulating sync with Admin
-        const currentAdminTotal = parseInt(localStorage.getItem("admin_total_sessions") || "34");
-        localStorage.setItem("admin_total_sessions", (currentAdminTotal + 1).toString());
-        
-        // Increment teacher's own done count
-        const teacherDone = parseInt(localStorage.getItem("teacher_done_count") || "0");
-        localStorage.setItem("teacher_done_count", (teacherDone + 1).toString());
-
-        // Also update teacher 1 stats specifically (simulated)
-        const teacher1Sessions = parseInt(localStorage.getItem("teacher_1_sessions") || "45");
-        localStorage.setItem("teacher_1_sessions", (teacher1Sessions + 1).toString());
-
-        alert("تم تسجيل الحضور بنجاح! سيتم تحديث عدد الحصص عند الأدمن.");
+        const Swal = require("sweetalert2");
+        Swal.fire({
+          title: "تم التسجيل!",
+          text: "تم تسجيل الحضور بنجاح! سيتم تحديث الإحصائيات.",
+          icon: "success",
+          confirmButtonText: "حسناً",
+          confirmButtonColor: "#10b981",
+          timer: 1500
+        });
     };
 
     return (

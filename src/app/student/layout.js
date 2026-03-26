@@ -6,12 +6,13 @@ export default async function StudentLayout({ children }) {
   const sessionCookie = cookieStore.get("session");
   let teacherLink = "/student/quran-teachers";
 
+  let sessionData = null;
   if (sessionCookie) {
     try {
       const base64Str = sessionCookie.value;
       const uriEncodedStr = Buffer.from(base64Str, "base64").toString("utf8");
       const jsonStr = decodeURIComponent(uriEncodedStr);
-      const sessionData = JSON.parse(jsonStr);
+      sessionData = JSON.parse(jsonStr);
       const course = sessionData.course;
 
       if (course === "العربية لغير الناطقين") {
@@ -32,7 +33,7 @@ export default async function StudentLayout({ children }) {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#f8fbfb] via-[#f2f8f8] to-[#eef5f5]">
       <StudentNavbar 
-        sectionTitle={sessionCookie ? "بوابة الطالب" : "منصة مشاعل المعرفة"} 
+        sectionTitle={sessionCookie ? (sessionData?.course || "بوابة الطالب") : "منصة مشاعل المعرفة"} 
         links={STUDENT_LINKS} 
         ctaLabel="الرئيسة" 
         ctaHref="/" 

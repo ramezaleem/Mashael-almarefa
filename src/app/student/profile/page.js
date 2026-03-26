@@ -23,79 +23,114 @@ export default function StudentProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [student, setStudent] = useState({
-    name: "مريم أحمد خالد",
-    id: "STD-24017",
-    level: "المستوى الثاني - لغة عربية",
-    course: "بوابة الطالب",
-    age: 12,
-    country: "مصر",
-    guardian: "أحمد خالد",
-    phone: "+20 100 345 7788",
-    email: "mariam.student@example.com",
-    joinDate: "15 سبتمبر 2025",
-    teacher: "أ. سارة محمد",
-    nextClass: "السبت 7 مارس 2026 - 6:00 م",
+    name: "جاري التحميل...",
+    id: "غير محدد",
+    level: "لم يتم التحديد بعد",
+    course: "طالب جديد",
+    age: "",
+    country: "غير محدد",
+    guardian: "غير محدد",
+    phone: "غير محدد",
+    email: "",
   });
 
   const [progressData, setProgressData] = useState({
-    attendance: "96",
-    rating: "8.6",
-    hours: "42",
-    nextLesson: "السبت 7 مارس 2026 - 6:00 م",
-    reading: 86,
-    writing: 78,
-    listening: 91,
-    conversation: 74,
+    attendance: "0",
+    rating: "0",
+    hours: "0",
+    nextLesson: "لم يتم التحديد",
+    reading: 0,
+    writing: 0,
+    listening: 0,
+    conversation: 0,
     achievements: "",
     notes: ""
   });
 
-  const [upcomingSessions] = useState([
-    { course: "اللغة العربية - قواعد", date: "السبت 7 مارس", time: "6:00 م", duration: "60 دقيقة", meetLink: "https://meet.google.com/new" },
-    { course: "تلاوة وتجويد", date: "الاثنين 9 مارس", time: "5:30 م", duration: "45 دقيقة", meetLink: "https://meet.google.com/new" },
-    { course: "مراجعة واجبات", date: "الأربعاء 11 مارس", time: "7:00 م", duration: "30 دقيقة", meetLink: "https://meet.google.com/new" },
-  ]);
+  const [upcomingSessions, setUpcomingSessions] = useState([]);
 
   useEffect(() => {
     const cookies = document.cookie.split("; ");
     const sessionCookie = cookies.find(c => c.startsWith("session="));
-    let currentEmail = "mariam.student@example.com";
-
+    
     if (sessionCookie?.split("=")[1]) {
       try {
         const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
         const decoded = decodeURIComponent(atob(base64));
         const data = JSON.parse(decoded);
-        currentEmail = data.email || currentEmail;
+        const currentEmail = data.email;
         
-        // Load editable data from localStorage first
-        const localData = localStorage.getItem(`student_profile_${currentEmail}`);
-        if (localData) {
-            setStudent(JSON.parse(localData));
-        } else {
-            setStudent(prev => ({
-                ...prev,
-                name: data.name || prev.name,
-                course: data.course || prev.course,
-                level: data.department 
-                    ? `${data.department}${data.subjects?.length > 0 ? ` - (${data.subjects.join("، ")})` : ""}` 
-                    : prev.level,
-                email: data.email || prev.email,
-            }));
+        // Fetch sessions assigned to this student
+        const savedSessions = localStorage.getItem(`sessions_${currentEmail}`);
+        if (savedSessions) {
+            setUpcomingSessions(JSON.parse(savedSessions).slice(0, 3));
         }
 
-        // Fetch progress from localStorage using email
+        // Load profile data
+        const localData = localStorage.getItem(`student_profile_${currentEmail}`);
+        const initialFromSession = {
+            name: data.name || "طالب جديد",
+            course: data.course || "بوابة الطالب",
+            id: data.id || `STD-${Math.floor(10000 + Math.random() * 90000)}`,
+            level: data.department 
+                ? `${data.department}${data.subjects?.length > 0 ? ` - (${data.subjects.join("، ")})` : ""}` 
+                : "بانتظار تحديد المستوى",
+            email: data.email || "",
+            guardian: data.guardianName || data.fatherName || data.guardian || "غير محدد",
+            age: data.age || "",
+            country: data.country || data.countryName || "غير محدد",
+            phone: data.phone || data.guardianPhone || "غير محدد",
+            joinDate: data.joinDate || new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })
+        };
+
+        if (localData) {
+            const parsedLocal = JSON.parse(localData);
+            // Merge: preserve local storage but fill missing critical signup info
+            setStudent({
+                ...initialFromSession,
+                ...parsedLocal,
+                // Ensure signup info persists if local was empty
+                country: parsedLocal.country && parsedLocal.country !== "غير محدد" ? parsedLocal.country : initialFromSession.country,
+                age: parsedLocal.age && parsedLocal.age !== "" ? parsedLocal.age : initialFromSession.age,
+                fatherName: parsedLocal.fatherName && parsedLocal.fatherName !== "" ? parsedLocal.fatherName : initialFromSession.fatherName,
+                phone: parsedLocal.phone && parsedLocal.phone !== "غير محدد" ? parsedLocal.phone : initialFromSession.phone
+            });
+        } else {
+            setStudent(initialFromSession);
+        }
+
+        // Fetch progress
         const savedProgress = localStorage.getItem(`progress_${currentEmail}`);
         if (savedProgress) {
           setProgressData(JSON.parse(savedProgress));
         }
-      } catch { }
+      } catch (e) { console.error(e); }
     }
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setStudent(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newImage = reader.result;
+        setStudent((prev) => {
+          const updated = { ...prev, image: newImage };
+          // Save image immediately so it reflects in Navbar and after refresh
+          localStorage.setItem(`student_profile_${student.email}`, JSON.stringify(updated));
+          return updated;
+        });
+        // Feedback
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = (e) => {
@@ -114,16 +149,20 @@ export default function StudentProfilePage() {
       <div className="absolute left-0 top-0 h-[380px] w-[380px] -translate-x-1/3 -translate-y-1/3 rounded-full bg-emerald-200/45 blur-3xl" />
       <div className="absolute bottom-0 right-0 h-[460px] w-[460px] translate-x-1/4 translate-y-1/4 rounded-full bg-emerald-100/65 blur-3xl" />
 
-      <StudentNavbar sectionTitle="بوابة الطالب" links={NAV_LINKS} />
+      <StudentNavbar sectionTitle={student.course || "بوابة الطالب"} links={NAV_LINKS} />
 
       <div className="site-container relative z-10 pt-20">
         <section className="modern-card mb-8 overflow-hidden rounded-3xl border border-white/60 p-6 shadow-2xl shadow-emerald-900/10 sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4 sm:gap-5">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-2xl font-black text-white shadow-lg shadow-emerald-500/30 sm:h-20 sm:w-20 sm:text-3xl relative overflow-hidden group">
-                <span className="group-hover:opacity-0 transition-opacity">{student.name?.charAt(0) || "م"}</span>
-                <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="رفع صورة شخصية" />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {student.image ? (
+                  <img src={student.image} alt={student.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="group-hover:opacity-0 transition-opacity">{student.name?.charAt(0) || "م"}</span>
+                )}
+                <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="رفع صورة شخصية" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>
               </div>
@@ -188,6 +227,26 @@ export default function StudentProfilePage() {
                                 required
                             />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 mr-2">ولي الأمر</label>
+                            <input
+                                type="text"
+                                name="guardian"
+                                value={student.guardian || ""}
+                                onChange={handleChange}
+                                className="w-full rounded-xl border border-emerald-100 bg-white/50 px-4 py-3 text-sm focus:border-emerald-500 outline-none transition-all"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 mr-2">تحديث الصورة الشخصية</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="w-full rounded-xl border border-emerald-100 bg-white/50 px-4 py-3 text-xs outline-none transition-all"
+                            />
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-slate-500 mr-2">العمر</label>
@@ -214,18 +273,6 @@ export default function StudentProfilePage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 mr-2">اسم ولي الأمر</label>
-                            <input
-                                type="text"
-                                name="guardian"
-                                value={student.guardian}
-                                onChange={handleChange}
-                                className="w-full rounded-xl border border-emerald-100 bg-white/50 px-4 py-3 text-sm focus:border-emerald-500 outline-none transition-all"
-                                required
-                            />
-                        </div>
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-500 mr-2">رقم الهاتف للتواصل</label>
                             <input
@@ -238,7 +285,6 @@ export default function StudentProfilePage() {
                                 required
                             />
                         </div>
-                    </div>
 
                     <div className="pt-4">
                         <button
@@ -271,7 +317,7 @@ export default function StudentProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="flex flex-col gap-1">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ولي الأمر</span>
-                            <span className="text-lg font-bold text-emerald-900">{student.guardian}</span>
+                            <span className="text-lg font-bold text-emerald-900">{student.guardian || "غير محدد"}</span>
                         </div>
                         <div className="flex flex-col gap-1">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">رقم الهاتف</span>
@@ -339,20 +385,34 @@ export default function StudentProfilePage() {
         <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <article className="modern-card rounded-3xl border border-white/70 p-6 shadow-xl shadow-emerald-900/5">
                 <h2 className="text-xl font-black text-emerald-950">الحصص القادمة</h2>
-                <ul className="mt-6 space-y-3">
-                {upcomingSessions.map((session) => (
-                    <li key={`${session.course}-${session.date}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-emerald-100 bg-white/70 p-4 hover:shadow-md transition-all">
-                    <div>
-                        <p className="font-bold text-emerald-900">{session.course}</p>
-                        <p className="mt-1 text-sm text-slate-600">{session.date} - {session.time}</p>
+                <div className="mt-6">
+                {upcomingSessions.length > 0 ? (
+                    <ul className="space-y-3">
+                    {upcomingSessions.map((session) => (
+                        <li key={`${session.course}-${session.date}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-emerald-100 bg-white/70 p-4 hover:shadow-md transition-all">
+                        <div>
+                            <p className="font-bold text-emerald-900">{session.course || session.title}</p>
+                            <p className="mt-1 text-sm text-slate-600">{session.date} - {session.time || "موعد مجدول"}</p>
+                        </div>
+                        <a href={session.meetLink || "https://meet.google.com/new"} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500 hover:scale-105 active:scale-95">
+                            دخول الحصة
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        </a>
+                        </li>
+                    ))}
+                    </ul>
+                ) : (
+                    <div className="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/20 p-10 text-center">
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <p className="text-sm font-bold text-emerald-950">لا توجد حصص قادمة مجدولة</p>
+                        <p className="mt-1 text-xs text-slate-500">سيظهر الموعد هنا فور قيام المعلم بجدولة حصتك القادمة.</p>
                     </div>
-                    <a href={session.meetLink || "https://meet.google.com/new"} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500 hover:scale-105 active:scale-95">
-                        دخول الحصة
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                    </a>
-                    </li>
-                ))}
-                </ul>
+                )}
+                </div>
             </article>
 
             <article className="modern-card rounded-3xl border border-white/70 p-6 shadow-xl shadow-emerald-900/5">

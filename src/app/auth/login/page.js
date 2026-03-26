@@ -43,9 +43,12 @@ export default function LoginPage() {
       return;
     }
 
-    // Success
     const cookieOptions = rememberMe ? "max-age=2592000; SameSite=Strict" : "SameSite=Strict";
-    const sessionData = { role: userByEmail.role, email: userByEmail.email, name: userByEmail.name, course: userByEmail.course };
+    // Include all user fields in the session to ensure profile parts show up correctly
+    const sessionData = { ...userByEmail };
+    // Remove sensitive data before putting in cookie if desired, but for local-first it's fine
+    delete sessionData.password;
+    
     const encodedSession = btoa(encodeURIComponent(JSON.stringify(sessionData)));
 
     document.cookie = `userRole=${userByEmail.role}; path=/; ${cookieOptions}`;

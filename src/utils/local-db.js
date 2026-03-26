@@ -1,7 +1,7 @@
 "use client";
 
+// Fresh test environment: Admin only
 const INITIAL_USERS = [
-  // Admin
   { 
     id: "ADM-001",
     role: "admin", 
@@ -10,152 +10,22 @@ const INITIAL_USERS = [
     name: "مدير النظام", 
     course: "", 
     redirect: "/admin/dashboard" 
-  },
-
-  // Teachers
-  { 
-    id: "TCH-001",
-    role: "teacher", 
-    email: "quran@gmail.com", 
-    password: "123", 
-    name: "معلم ركن القرآن", 
-    course: "ركن القرآن الكريم", 
-    redirect: "/teacher/profile" 
-  },
-  { 
-    id: "TCH-002",
-    role: "teacher", 
-    email: "arabic@gmail.com", 
-    password: "123", 
-    name: "معلم العربية", 
-    course: "اللغة العربية لغير الناطقين", 
-    redirect: "/teacher/profile" 
-  },
-  { 
-    id: "TCH-003",
-    role: "teacher", 
-    email: "curricula@gmail.com", 
-    password: "123", 
-    name: "معلم المناهج الدراسية", 
-    course: "المناهج الدراسية", 
-    redirect: "/teacher/profile" 
-  },
-
-  // Students - 3 for each
-  { 
-    id: "QUR-001", 
-    role: "student", 
-    email: "student1@gmail.com", 
-    password: "123", 
-    name: "طالب ركن القرآن", 
-    course: "ركن القرآن الكريم", 
-    age: 10, 
-    level: "الجزء الأول",
-    joinDate: "15 يناير 2026",
-    redirect: "/student/profile" 
-  },
-  { 
-    id: "QUR-002", 
-    role: "student", 
-    email: "s_quran2@gmail.com", 
-    password: "123", 
-    name: "عمر ركن القرآن", 
-    course: "ركن القرآن الكريم", 
-    age: 12, 
-    level: "الجزء الثاني",
-    joinDate: "20 يناير 2026",
-    redirect: "/student/profile" 
-  },
-  { 
-    id: "QUR-003", 
-    role: "student", 
-    email: "s_quran3@gmail.com", 
-    password: "123", 
-    name: "فاطمة ركن القرآن", 
-    course: "ركن القرآن الكريم", 
-    age: 9, 
-    level: "التحفة السنية",
-    joinDate: "01 فبراير 2026",
-    redirect: "/student/profile" 
-  },
-
-  { 
-    id: "ARB-001", 
-    role: "student", 
-    email: "student2@gmail.com", 
-    password: "123", 
-    name: "طالب العربية", 
-    course: "اللغة العربية لغير الناطقين", 
-    age: 11, 
-    level: "المستوى الأول",
-    joinDate: "15 يناير 2026",
-    redirect: "/student/profile" 
-  },
-  { 
-    id: "ARB-002", 
-    role: "student", 
-    email: "s_arabic2@gmail.com", 
-    password: "123", 
-    name: "عمر العربية", 
-    course: "اللغة العربية لغير الناطقين", 
-    age: 13, 
-    level: "المستوى الثاني",
-    joinDate: "20 يناير 2026",
-    redirect: "/student/profile" 
-  },
-  { 
-    id: "ARB-003", 
-    role: "student", 
-    email: "s_arabic3@gmail.com", 
-    password: "123", 
-    name: "فاطمة العربية", 
-    course: "اللغة العربية لغير الناطقين", 
-    age: 8, 
-    level: "المستوى الأول",
-    joinDate: "01 فبراير 2026",
-    redirect: "/student/profile" 
-  },
-
-  { 
-    id: "CUR-001", 
-    role: "student", 
-    email: "student3@gmail.com", 
-    password: "123", 
-    name: "طالب المناهج", 
-    course: "المناهج الدراسية", 
-    age: 10, 
-    level: "الصف الرابع",
-    joinDate: "15 يناير 2026",
-    redirect: "/student/profile" 
-  },
-  { 
-    id: "CUR-002", 
-    role: "student", 
-    email: "s_curr2@gmail.com", 
-    password: "123", 
-    name: "عمر المناهج", 
-    course: "المناهج الدراسية", 
-    age: 12, 
-    level: "الصف السادس",
-    joinDate: "20 يناير 2026",
-    redirect: "/student/profile" 
-  },
-  { 
-    id: "CUR-003", 
-    role: "student", 
-    email: "s_curr3@gmail.com", 
-    password: "123", 
-    name: "فاطمة المناهج", 
-    course: "المناهج الدراسية", 
-    age: 9, 
-    level: "الصف الثالث",
-    joinDate: "01 فبراير 2026",
-    redirect: "/student/profile" 
-  },
+  }
 ];
 
 export const getLocalUsers = () => {
     if (typeof window === "undefined") return INITIAL_USERS;
+    
+    // Check if we need a fresh start (resetting database for current tests)
+    const dbVersion = "v1.1_clean_test"; // Change this if you want another full reset
+    const storedVersion = localStorage.getItem("app_users_version");
+    
+    if (storedVersion !== dbVersion) {
+        localStorage.setItem("app_users", JSON.stringify(INITIAL_USERS));
+        localStorage.setItem("app_users_version", dbVersion);
+        return INITIAL_USERS;
+    }
+
     const stored = localStorage.getItem("app_users");
     if (!stored) {
         localStorage.setItem("app_users", JSON.stringify(INITIAL_USERS));
@@ -166,6 +36,10 @@ export const getLocalUsers = () => {
 
 export const saveUser = (user) => {
     const users = getLocalUsers();
+    // Prevent duplicate emails
+    if (users.find(u => u.email === user.email)) {
+        return null;
+    }
     const newUser = {
         ...user,
         id: Date.now().toString(),

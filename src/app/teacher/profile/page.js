@@ -11,41 +11,47 @@ export default function TeacherProfilePage() {
 
     // Initial state matching existing teacher data structure
     const [profile, setProfile] = useState({
-        name: "",
-        specialization: "",
-        available: "",
-        phone: "",
+        name: "جاري التحميل...",
+        specialization: "لم يتم التحديد بعد",
+        available: "غير محدد",
+        phone: "غير محدد",
         bio: "",
         image: "",
-        status: "نشط", // نشط أو إجازة
-        rating: "4.8" // Default for new profiles
+        status: "نشط",
+        rating: "0"
     });
 
     useEffect(() => {
-        // Load existing session data to pre-fill name at least
         const cookies = document.cookie.split("; ");
         const sessionCookie = cookies.find(c => c.startsWith("session="));
+        let currentEmail = "";
+
         if (sessionCookie) {
             try {
                 const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
                 const decoded = decodeURIComponent(atob(base64));
                 const data = JSON.parse(decoded);
+                currentEmail = data.email;
                 setProfile(prev => ({
                     ...prev,
-                    name: data.name || "",
+                    name: data.name || "معلم جديد",
                     specialization: data.department 
                         ? `${data.department}${data.subjects?.length > 0 ? ` (${data.subjects.join("، ")})` : ""}` 
-                        : prev.specialization,
+                        : "لم يتم تحديد القسم",
                 }));
-            } catch {
-                console.error("Failed to parse session");
+            } catch (e) {
+                console.error("Failed to parse session", e);
             }
         }
         
-        // Load local storage if any
-        const savedProfile = localStorage.getItem("teacher_profile");
+        // Load from localStorage using email-specific key for reliability
+        const savedProfile = localStorage.getItem(`teacher_profile_${currentEmail}`);
         if (savedProfile) {
             setProfile(JSON.parse(savedProfile));
+        } else {
+            // Check legacy key
+            const legacy = localStorage.getItem("teacher_profile");
+            if (legacy) setProfile(JSON.parse(legacy));
         }
         setLoading(false);
     }, []);
@@ -61,8 +67,23 @@ export default function TeacherProfilePage() {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setProfile(prev => ({ ...prev, image: reader.result }));
-                setSaved(false);
+                const newImage = reader.result;
+                // Get email from session if possible to save immediately
+                const session = document.cookie.split("; ").find(c => c.startsWith("session="));
+                let email = "";
+                try {
+                    const data = JSON.parse(decodeURIComponent(atob(decodeURIComponent(session.split("=")[1]))));
+                    email = data.email;
+                } catch {}
+
+                setProfile(prev => {
+                    const updated = { ...prev, image: newImage };
+                    if (email) localStorage.setItem(`teacher_profile_${email}`, JSON.stringify(updated));
+                    localStorage.setItem("teacher_profile", JSON.stringify(updated)); 
+                    return updated;
+                });
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
             };
             reader.readAsDataURL(file);
         }
@@ -70,7 +91,16 @@ export default function TeacherProfilePage() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        localStorage.setItem("teacher_profile", JSON.stringify(profile));
+        // Get email from session if possible
+        const session = document.cookie.split("; ").find(c => c.startsWith("session="));
+        let email = "";
+        try {
+            const data = JSON.parse(decodeURIComponent(atob(decodeURIComponent(session.split("=")[1]))));
+            email = data.email;
+        } catch {}
+
+        localStorage.setItem(`teacher_profile_${email}`, JSON.stringify(profile));
+        localStorage.setItem("teacher_profile", JSON.stringify(profile)); // Keep legacy for compatibility
         setSaved(true);
         // In a real app, we would send this to the API
         // For now, we simulate success
@@ -203,6 +233,15 @@ export default function TeacherProfilePage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
+                                <label className="text-sm font-bold text-emerald-900">الصورة الشخصية</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="w-full rounded-xl border border-emerald-100 bg-white/50 px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                />
+                            </div>
+                            <div className="space-y-2">
                                 <label className="text-sm font-bold text-emerald-900">المواعيد المتاحة</label>
                                 <input
                                     type="text"
@@ -214,28 +253,19 @@ export default function TeacherProfilePage() {
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-emerald-900">رقم الواتساب (للتواصل المباشر)</label>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={profile.phone}
-                                    onChange={handleChange}
-                                    placeholder="201xxxxxxxxx"
-                                    className="w-full rounded-xl border border-emerald-100 bg-white/50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                    required
-                                    dir="ltr"
-                                />
-                            </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-emerald-900">تغيير الصورة الشخصية</label>
+                            <label className="text-sm font-bold text-emerald-900">رقم الواتساب (للتواصل المباشر)</label>
                             <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                className="w-full rounded-xl border border-emerald-100 bg-emerald-50/10 px-4 py-3 text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                                type="tel"
+                                name="phone"
+                                value={profile.phone}
+                                onChange={handleChange}
+                                placeholder="201xxxxxxxxx"
+                                className="w-full rounded-xl border border-emerald-100 bg-white/50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                required
+                                dir="ltr"
                             />
                         </div>
 

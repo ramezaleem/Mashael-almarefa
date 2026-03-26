@@ -1,17 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import TeacherNavbar from "../teacher/teacher-navbar";
 import Footer from "@/components/footer";
 
 // ─── Static Data (module-level, never re-created) ─────────────────────────────
-
-const STUDENTS = [
-  { name: "طالب المناهج الدراسية", email: "student3@gmail.com" },
-  { name: "عمر عبد الله", email: "omar.cur@example.com" },
-  { name: "فاطمة علي", email: "fatma.cur@example.com" },
-];
 
 const TOPICS = [
   "رياضيات - الصف الرابع",
@@ -159,8 +153,8 @@ function SessionForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
             <option value="" disabled hidden className="text-slate-400">
               -- اختر من القائمة --
             </option>
-            {STUDENTS.map((s) => (
-              <option key={s.email} value={s.name} className="bg-white text-emerald-950">
+            {students.map((s) => (
+              <option key={s.email} value={s.email} className="bg-white text-emerald-950">
                 {s.name}
               </option>
             ))}
@@ -365,10 +359,17 @@ function SuccessMessage({ onReset }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EgyptGulfCurriculaSessionPage() {
+  const [students, setStudents] = useState([]);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    const { getLocalUsers } = require("@/utils/local-db");
+    const all = getLocalUsers();
+    setStudents(all.filter(u => u.role === "student" && u.course === "المناهج الدراسية"));
+  }, []);
 
   // Stable references — won't trigger child re-renders on each parent render
   const handleChange = useCallback((e) => {

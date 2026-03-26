@@ -18,6 +18,16 @@ export default function TeacherNavbar({ sectionTitle, links, ctaLabel, ctaHref, 
                     const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
                     const decoded = decodeURIComponent(atob(base64));
                     const data = JSON.parse(decoded);
+
+                    // Check for local profile image
+                    const localProfile = localStorage.getItem(`teacher_profile_${data.email}`);
+                    if (localProfile) {
+                        const parsedLocal = JSON.parse(localProfile);
+                        if (parsedLocal.image) {
+                            data.image = parsedLocal.image;
+                        }
+                    }
+
                     setSession(data);
                 } catch {
                     console.error("Failed to parse session");
