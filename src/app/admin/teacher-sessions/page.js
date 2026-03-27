@@ -39,35 +39,54 @@ export default function AdminTeacherSessionsPage() {
 
   useEffect(() => {
     setMounted(true);
-    // Load data from localStorage or use initial
-    const saved = localStorage.getItem("admin_teachers_accounts");
-    let baseTeachers = saved ? JSON.parse(saved) : INITIAL_TEACHERS;
+    // Fetch real teachers from app_users
+    const allUsers = JSON.parse(localStorage.getItem("app_users") || "[]");
+    const realTeachers = allUsers.filter(u => u.role === "teacher");
 
-    // Sync with teacher 1 sessions from other session tracking
-    const teacher1Extra = parseInt(localStorage.getItem("teacher_1_sessions") || "45");
-    
-    const syncedTeachers = baseTeachers.map(t => 
-      t.id === 1 ? { ...t, completedSessions: teacher1Extra } : t
-    );
+    // Load financial settings (rate and amount received)
+    const savedFinancials = JSON.parse(localStorage.getItem("admin_teachers_financials") || "{}");
 
-    setTeachers(syncedTeachers);
+    const teachersData = realTeachers.map(u => {
+      const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
+      const sessions = parseInt(localStorage.getItem(`teacher_done_${u.email}`) || "0");
+      const financial = savedFinancials[u.email] || { rate: 50, received: 0 };
+
+      return {
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        department: u.course || u.department || "عام",
+        completedSessions: sessions,
+        ratePerSession: financial.rate,
+        amountReceived: financial.received,
+        image: profile.image || "",
+        status: profile.available || "نشط",
+      };
+    });
+
+    setTeachers(teachersData);
   }, []);
 
-  // Save changes to localStorage whenever teachers state changes
-  useEffect(() => {
-    if (mounted && teachers.length > 0) {
-      localStorage.setItem("admin_teachers_accounts", JSON.stringify(teachers));
-    }
-  }, [teachers, mounted]);
+  const handleUpdate = (email, field, value) => {
+    const numValue = parseFloat(value) || 0;
 
-  const handleUpdate = (id, field, value) => {
-    setTeachers(prev => prev.map(t => 
-      t.id === id ? { ...t, [field]: parseFloat(value) || 0 } : t
+    // Update state
+    setTeachers(prev => prev.map(t =>
+      t.email === email ? { ...t, [field === "rate" ? "ratePerSession" : "amountReceived"]: numValue } : t
     ));
+
+    // Persist to localStorage
+    const savedFinancials = JSON.parse(localStorage.getItem("admin_teachers_financials") || "{}");
+    if (!savedFinancials[email]) savedFinancials[email] = { rate: 50, received: 0 };
+
+    if (field === "rate") savedFinancials[email].rate = numValue;
+    if (field === "received") savedFinancials[email].received = numValue;
+
+    localStorage.setItem("admin_teachers_financials", JSON.stringify(savedFinancials));
   };
 
   const filteredTeachers = teachers.filter((t) =>
-    t.name.includes(searchTerm) || t.department.includes(searchTerm)
+    t.name.includes(searchTerm) || t.department?.includes(searchTerm)
   );
 
   if (!mounted) return null;
@@ -106,23 +125,29 @@ export default function AdminTeacherSessionsPage() {
                 <th className="whitespace-nowrap px-6 py-4 font-bold">القسم</th>
                 <th className="whitespace-nowrap px-6 py-4 font-bold">الحصص المكتملة</th>
                 <th className="whitespace-nowrap px-6 py-4 font-bold">سعر الحصة</th>
-                <th className="whitespace-nowrap px-6 py-4 font-bold">المبلغ المستحق</th>
                 <th className="whitespace-nowrap px-6 py-4 font-bold text-center">المبلغ المستلم</th>
+                <th className="whitespace-nowrap px-6 py-4 font-bold">المبلغ المستحق</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-emerald-50">
               {filteredTeachers.map((teacher) => {
-                const totalDue = teacher.completedSessions * teacher.ratePerSession;
+                const totalEarned = teacher.completedSessions * teacher.ratePerSession;
+                const outstandingBalance = totalEarned - teacher.amountReceived;
+
                 return (
-                  <tr key={teacher.id} className="transition-colors hover:bg-emerald-50/30">
+                  <tr key={teacher.email} className="transition-colors hover:bg-emerald-50/30">
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 font-bold text-emerald-700">
-                          {teacher.name.charAt(0)}
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-100 border border-emerald-200">
+                          {teacher.image ? (
+                            <img src={teacher.image} alt={teacher.name} className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="font-bold text-emerald-700">{teacher.name.charAt(0)}</span>
+                          )}
                         </div>
                         <div>
                           <p className="font-bold text-emerald-950">{teacher.name}</p>
-                          <span className={`mt-0.5 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${teacher.status === 'نشط' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>
+                          <span className={`mt-0.5 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${teacher.status === 'نشط' || teacher.status === 'متاح' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                             {teacher.status}
                           </span>
                         </div>
@@ -141,35 +166,40 @@ export default function AdminTeacherSessionsPage() {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center gap-1">
-                        <input 
-                            type="number"
-                            value={teacher.ratePerSession}
-                            onChange={(e) => handleUpdate(teacher.id, 'ratePerSession', e.target.value)}
-                            className="w-20 rounded-lg border border-emerald-100 px-2 py-1 text-center font-bold text-emerald-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        <input
+                          type="number"
+                          value={teacher.ratePerSession}
+                          onChange={(e) => handleUpdate(teacher.email, 'rate', e.target.value)}
+                          className="w-20 rounded-lg border border-emerald-100 px-2 py-1 text-center font-bold text-emerald-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         />
                         <span className="text-[10px] font-bold text-slate-400">ج.م</span>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="font-bold text-emerald-600">{totalDue} ج.م</span>
-                    </td>
                     <td className="whitespace-nowrap px-6 py-4 text-center">
-                       <div className="flex items-center justify-center gap-1">
-                            <input 
-                                type="number"
-                                value={teacher.amountReceived}
-                                onChange={(e) => handleUpdate(teacher.id, 'amountReceived', e.target.value)}
-                                className="w-24 rounded-lg border border-emerald-100 px-2 py-1 text-center font-bold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                                placeholder="0"
-                            />
-                            <span className="text-[10px] font-bold text-slate-400">ج.م</span>
-                        </div>
-                        {teacher.amountReceived >= totalDue && totalDue > 0 && (
-                            <span className="block mt-1 text-[10px] font-bold text-green-600">تم السداد بالكامل</span>
-                        )}
-                        {teacher.amountReceived > 0 && teacher.amountReceived < totalDue && (
-                            <span className="block mt-1 text-[10px] font-bold text-amber-600">سداد جزئي (باقي {totalDue - teacher.amountReceived})</span>
-                        )}
+                      <div className="flex items-center justify-center gap-1">
+                        <input
+                          type="number"
+                          value={teacher.amountReceived}
+                          onChange={(e) => handleUpdate(teacher.email, 'received', e.target.value)}
+                          className="w-24 rounded-lg border border-emerald-100 px-2 py-1 text-center font-bold text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          placeholder="0"
+                        />
+                        <span className="text-[10px] font-bold text-slate-400">ج.م</span>
+                      </div>
+                      {outstandingBalance <= 0 && totalEarned > 0 && (
+                        <span className="block mt-1 text-[10px] font-bold text-green-600">تم السداد بالكامل ✅</span>
+                      )}
+                      {outstandingBalance > 0 && teacher.amountReceived > 0 && (
+                        <span className="block mt-1 text-[10px] font-bold text-amber-600">سداد جزئي ⏳</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className={`font-bold ${outstandingBalance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                          {outstandingBalance} ج.م
+                        </span>
+                        <span className="text-[10px] text-slate-400">الإجمالي: {totalEarned}</span>
+                      </div>
                     </td>
                   </tr>
                 );
