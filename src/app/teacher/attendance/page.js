@@ -65,10 +65,33 @@ function AttendanceContent() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // 1. Save attendance log for the student
         const logs = JSON.parse(localStorage.getItem(`attendance_${formData.studentEmail}`) || "[]");
         logs.push(formData);
         localStorage.setItem(`attendance_${formData.studentEmail}`, JSON.stringify(logs));
         
+        // 2. Increment Teacher Completed Sessions
+        const cookies = document.cookie.split("; ");
+        const sessionCookie = cookies.find(c => c.startsWith("session="));
+        if (sessionCookie) {
+            try {
+                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                const decoded = decodeURIComponent(atob(base64));
+                const sessionData = JSON.parse(decoded);
+                const teacherEmail = sessionData.email;
+                
+                if (teacherEmail) {
+                    const currentCount = parseInt(localStorage.getItem(`teacher_done_${teacherEmail}`) || "0");
+                    localStorage.setItem(`teacher_done_${teacherEmail}`, (currentCount + 1).toString());
+                    
+                    // Also update Admin global sessions count
+                    const adminTotal = parseInt(localStorage.getItem("admin_total_sessions") || "0");
+                    localStorage.setItem("admin_total_sessions", (adminTotal + 1).toString());
+                }
+            } catch (err) { console.error("Session sync error:", err); }
+        }
+
         setSaved(true);
         setTimeout(() => {
             setSaved(false);
