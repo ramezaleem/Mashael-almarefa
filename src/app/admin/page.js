@@ -3,19 +3,9 @@
 import { useState, useEffect } from "react";
 
 // Mock data
-// Mock data for courses
-const ALL_COURSES = [
-    { id: 'arabic', title: 'اللغة العربية' },
-    { id: 'english', title: 'اللغة الإنجليزية' },
-    { id: 'math', title: 'الرياضيات' },
-    { id: 'science', title: 'العلوم' },
-    { id: 'social', title: 'الدراسات الاجتماعية' },
-    { id: 'french', title: 'اللغة الفرنسية' },
-    { id: 'german', title: 'اللغة الألمانية' },
-    { id: 'islamic', title: 'التربية الإسلامية' },
-];
-
+// Dynamic courses will be loaded from localStorage
 export default function AdminUsersPage() {
+    const [allCourses, setAllCourses] = useState([]);
     const [users, setUsers] = useState([]);
     const [activeTab, setActiveTab] = useState("student");
 
@@ -35,6 +25,11 @@ export default function AdminUsersPage() {
     useEffect(() => {
         const { getLocalUsers } = require("@/utils/local-db");
         setUsers(getLocalUsers());
+        
+        // Load real courses from Courses Center
+        const savedCourses = JSON.parse(localStorage.getItem("platform_courses") || "[]");
+        setAllCourses(savedCourses);
+        
         setMounted(true);
     }, []);
 
@@ -395,17 +390,21 @@ export default function AdminUsersPage() {
                         <p className="mb-4 text-sm text-slate-500">اختر الدورات التي ترغب في إتاحتها لهذا الطالب:</p>
 
                         <div className="space-y-3 mb-8 max-h-[40vh] overflow-y-auto pr-1 thin-scrollbar">
-                            {ALL_COURSES.map((course) => (
-                                <label key={course.id} className="flex items-center gap-3 p-3 rounded-xl border border-emerald-50 bg-emerald-50/30 cursor-pointer transition hover:bg-emerald-50">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedCourses.includes(course.id)}
-                                        onChange={() => toggleCourse(course.id)}
-                                        className="h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
-                                    />
-                                    <span className="font-bold text-emerald-900">{course.title}</span>
-                                </label>
-                            ))}
+                            {allCourses.length > 0 ? (
+                                allCourses.map((courseTitle) => (
+                                    <label key={courseTitle} className="flex items-center gap-3 p-3 rounded-xl border border-emerald-50 bg-emerald-50/30 cursor-pointer transition hover:bg-emerald-50">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCourses.includes(courseTitle)}
+                                            onChange={() => toggleCourse(courseTitle)}
+                                            className="h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                                        />
+                                        <span className="font-bold text-emerald-900">{courseTitle}</span>
+                                    </label>
+                                ))
+                            ) : (
+                                <p className="text-center py-4 text-xs font-bold text-slate-400 italic">لا توجد دورات مسجلة في مركز الدورات بعد.</p>
+                            )}
                         </div>
 
                         <div className="flex gap-3">

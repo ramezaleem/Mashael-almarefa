@@ -1,6 +1,6 @@
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { NextResponse } from 'next/server';
+import { join } from 'path';
+import { writeFileSync, mkdirSync } from 'fs';
 
 export async function POST(request) {
   try {
@@ -11,24 +11,26 @@ export async function POST(request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // 100MB Limit
     if (file.size > 100 * 1024 * 1024) {
       return NextResponse.json({ error: "File too large (Max 100MB)" }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
 
-    // Ensure directory exists
     const uploadDir = join(process.cwd(), 'public', 'Videos');
-    await mkdir(uploadDir, { recursive: true });
+    
+    // Ensure directory exists synchronously
+    mkdirSync(uploadDir, { recursive: true });
 
-    // Generate unique name
-    const filename = `${Date.now()}-${file.name.replaceAll(' ', '_')}`;
+    // Generate safe unique name
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+    const filename = `${Date.now()}-${sanitizedName}`;
     const path = join(uploadDir, filename);
 
-    await writeFile(path, buffer);
-    console.log(`File uploaded to ${path}`);
+    // Write file synchronously to ensure it's fully flushed before returning 
+    writeFileSync(path, buffer);
+    console.log(`File synchronized to ${path}`);
 
     return NextResponse.json({ 
       success: true, 
