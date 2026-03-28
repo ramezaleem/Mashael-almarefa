@@ -16,6 +16,7 @@ const STUDENTS_DATA = [
 ];
 
 function ProgressModal({ student, onClose, onSave }) {
+    const [activeTab, setActiveTab] = useState("progress"); // "progress" or "sessions"
     const [progress, setProgress] = useState({
         attendance: "95",
         rating: "8.5",
@@ -29,97 +30,157 @@ function ProgressModal({ student, onClose, onSave }) {
         notes: ""
     });
 
+    const [upcomingSessions, setUpcomingSessions] = useState([
+        { course: "اللغة العربية - قواعد", date: "السبت 7 مارس", time: "6:00 م", duration: "60 دقيقة", meetLink: "https://meet.google.com/new" }
+    ]);
+
+    const [newSession, setNewSession] = useState({
+        course: "اللغة العربية - قواعد",
+        date: "",
+        time: "",
+        duration: "60 دقيقة",
+        meetLink: "https://meet.google.com/new"
+    });
+
     useEffect(() => {
         const savedProgress = localStorage.getItem(`progress_${student.email}`);
         if (savedProgress) {
             setProgress(JSON.parse(savedProgress));
         }
+        const savedSessions =
+            localStorage.getItem(`sessions_${student.email}`) ||
+            localStorage.getItem(`upcoming_sessions_${student.email}`);
+        if (savedSessions) {
+            setUpcomingSessions(JSON.parse(savedSessions));
+        }
     }, [student.email]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(student.email, progress);
+        onSave(student.email, progress, upcomingSessions);
+    };
+
+    const addSession = () => {
+        if (!newSession.date || !newSession.time) return;
+        setUpcomingSessions([...upcomingSessions, newSession]);
+        setNewSession({ ...newSession, date: "", time: "" });
+    };
+
+    const removeSession = (index) => {
+        setUpcomingSessions(upcomingSessions.filter((_, i) => i !== index));
     };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
             <div className="w-full max-w-2xl overflow-hidden rounded-[2.5rem] bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
-                <div className="bg-emerald-600 px-8 py-6 text-white text-center">
-                    <h2 className="text-2xl font-black">تحديث تقدم الطالب</h2>
-                    <p className="mt-1 text-emerald-100 font-medium">{student.name}</p>
+                <div className="bg-emerald-600 px-8 py-4 text-white">
+                    <div className="flex items-center justify-between">
+                        <div className="text-right">
+                            <h2 className="text-xl font-black">إدارة بيانات الطالب</h2>
+                            <p className="text-xs text-emerald-100 font-medium">{student.name}</p>
+                        </div>
+                        <button onClick={onClose} className="rounded-full bg-white/20 p-2 hover:bg-white/30 transition-colors">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex border-b border-emerald-100 bg-emerald-50/30">
+                    <button 
+                        onClick={() => setActiveTab("progress")}
+                        className={`flex-1 py-3 text-sm font-bold transition-all ${activeTab === "progress" ? "bg-white text-emerald-700 border-b-2 border-emerald-600" : "text-slate-500 hover:text-emerald-600"}`}
+                    >
+                        تحديث التقدم
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab("sessions")}
+                        className={`flex-1 py-3 text-sm font-bold transition-all ${activeTab === "sessions" ? "bg-white text-emerald-700 border-b-2 border-emerald-600" : "text-slate-500 hover:text-emerald-600"}`}
+                    >
+                        جدولة الحصص
+                    </button>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto p-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <h3 className="font-bold text-emerald-800 border-b border-emerald-100 pb-2">الإحصائيات العامة</h3>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">نسبة الحضور (%)</label>
-                                <input type="number" value={progress.attendance} onChange={(e) => setProgress({...progress, attendance: e.target.value})} className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">متوسط التقييم (من 10)</label>
-                                <input type="text" value={progress.rating} onChange={(e) => setProgress({...progress, rating: e.target.value})} className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">الساعات المنجزة</label>
-                                <input type="number" value={progress.hours} onChange={(e) => setProgress({...progress, hours: e.target.value})} className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">موعد الحصة القادمة</label>
-                                <input type="text" value={progress.nextLesson} onChange={(e) => setProgress({...progress, nextLesson: e.target.value})} className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h3 className="font-bold text-emerald-800 border-b border-emerald-100 pb-2">تقدم المهارات (%)</h3>
-                            {['reading', 'writing', 'listening', 'conversation'].map((skill) => (
-                                <div key={skill}>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">
-                                        {skill === 'reading' ? 'القراءة' : skill === 'writing' ? 'الكتابة' : skill === 'listening' ? 'الاستماع' : 'المحادثة'}
-                                    </label>
-                                    <input 
-                                        type="range" 
-                                        min="0" max="100" 
-                                        value={progress[skill]} 
-                                        onChange={(e) => setProgress({...progress, [skill]: e.target.value})} 
-                                        className="w-full h-2 bg-emerald-100 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                                    />
-                                    <span className="text-xs font-bold text-emerald-600 ml-2">{progress[skill]}%</span>
+                <div className="max-h-[70vh] overflow-y-auto p-8">
+                    {activeTab === "progress" ? (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-emerald-800 border-b border-emerald-100 pb-2">الإحصائيات</h3>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">الحضور (%)</label>
+                                        <input type="number" value={progress.attendance} onChange={(e) => setProgress({...progress, attendance: e.target.value})} className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">التقييم (10/)</label>
+                                        <input type="text" value={progress.rating} onChange={(e) => setProgress({...progress, rating: e.target.value})} className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500" />
+                                    </div>
                                 </div>
-                            ))}
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-emerald-800 border-b border-emerald-100 pb-2">المهارات (%)</h3>
+                                    {['reading', 'writing'].map((skill) => (
+                                        <div key={skill} className="flex items-center gap-3">
+                                            <label className="w-16 text-xs font-bold text-slate-500">{skill === 'reading' ? 'قراءة' : 'كتابة'}</label>
+                                            <input type="range" min="0" max="100" value={progress[skill]} onChange={(e) => setProgress({...progress, [skill]: e.target.value})} className="flex-1 h-1.5 bg-emerald-100 rounded-lg appearance-none cursor-pointer accent-emerald-600" />
+                                            <span className="w-8 text-[10px] font-bold text-emerald-600">{progress[skill]}%</span>
+                                        </div>
+                                    ))}
+                                    {['listening', 'conversation'].map((skill) => (
+                                        <div key={skill} className="flex items-center gap-3">
+                                            <label className="w-16 text-xs font-bold text-slate-500">{skill === 'listening' ? 'استماع' : 'محادثة'}</label>
+                                            <input type="range" min="0" max="100" value={progress[skill]} onChange={(e) => setProgress({...progress, [skill]: e.target.value})} className="flex-1 h-1.5 bg-emerald-100 rounded-lg appearance-none cursor-pointer accent-emerald-600" />
+                                            <span className="w-8 text-[10px] font-bold text-emerald-600">{progress[skill]}%</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-emerald-800 border-b border-emerald-100 pb-2">ملاحظات</h3>
+                                <textarea 
+                                    value={progress.notes} 
+                                    onChange={(e) => setProgress({...progress, notes: e.target.value})}
+                                    placeholder="اكتب ملاحظات المعلم هنا..."
+                                    rows="3"
+                                    className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500 resize-none"
+                                />
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/20 p-4">
+                                <h3 className="text-sm font-bold text-emerald-800 mb-4">إضافة حصة جديدة</h3>
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <input type="text" placeholder="التاريخ (مثلاً: السبت 7 مارس)" value={newSession.date} onChange={(e) => setNewSession({...newSession, date: e.target.value})} className="rounded-xl border border-emerald-100 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-500" />
+                                    <input type="text" placeholder="الوقت (مثلاً: 6:00 م)" value={newSession.time} onChange={(e) => setNewSession({...newSession, time: e.target.value})} className="rounded-xl border border-emerald-100 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-500" />
+                                </div>
+                                <button type="button" onClick={addSession} className="w-full rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors">إضافة للجدول</button>
+                            </div>
 
-                    <div className="mt-8 space-y-4">
-                        <h3 className="font-bold text-emerald-800 border-b border-emerald-100 pb-2">الإنجازات والملاحظات</h3>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">أبرز الإنجازات</label>
-                            <textarea 
-                                value={progress.achievements} 
-                                onChange={(e) => setProgress({...progress, achievements: e.target.value})}
-                                placeholder="اكتب إنجازات الطالب هنا..."
-                                rows="3"
-                                className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500 resize-none"
-                            />
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-bold text-emerald-800">الحصص المجدولة</h3>
+                                {upcomingSessions.length > 0 ? upcomingSessions.map((session, idx) => (
+                                    <div key={idx} className="flex items-center justify-between rounded-xl border border-emerald-100 bg-white p-3 text-xs shadow-sm">
+                                        <div>
+                                            <p className="font-bold text-emerald-950">{session.course}</p>
+                                            <p className="text-slate-500">{session.date} | {session.time}</p>
+                                        </div>
+                                        <button onClick={() => removeSession(idx)} className="text-red-400 hover:text-red-600 p-1">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
+                                )) : (
+                                    <p className="text-center py-4 text-xs text-slate-400 italic">لا توجد حصص مجدولة لهذا الطالب</p>
+                                )}
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">ملاحظات المعلم</label>
-                            <textarea 
-                                value={progress.notes} 
-                                onChange={(e) => setProgress({...progress, notes: e.target.value})}
-                                placeholder="اكتب ملاحظاتك على مستوى الطالب هنا..."
-                                rows="3"
-                                className="w-full rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-2 text-sm outline-none focus:border-emerald-500 resize-none"
-                            />
-                        </div>
-                    </div>
+                    )}
+                </div>
 
-                    <div className="mt-8 flex gap-3">
-                        <button type="submit" className="flex-1 rounded-xl bg-emerald-600 py-3 font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500">حفظ التعديلات</button>
-                        <button type="button" onClick={onClose} className="flex-1 rounded-xl bg-slate-100 py-3 font-bold text-slate-600 transition-all hover:bg-slate-200">إلغاء</button>
+                <div className="border-t border-emerald-100 p-6 bg-emerald-50/10">
+                    <div className="flex gap-3">
+                        <button onClick={handleSubmit} className="flex-1 rounded-xl bg-emerald-600 py-3 font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500">حفظ الكل</button>
+                        <button onClick={onClose} className="flex-1 rounded-xl bg-slate-100 py-3 font-bold text-slate-600 transition-all hover:bg-slate-200">إلغاء</button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     );
@@ -170,9 +231,10 @@ export default function ArabicStudentsListPage() {
         fetchStudents();
     }, []);
 
-    const handleSave = (studentEmail, progress) => {
+    const handleSave = (studentEmail, progress, sessions) => {
         localStorage.setItem(`progress_${studentEmail}`, JSON.stringify(progress));
-        alert("تم حفظ بيانات التقدم بنجاح!");
+        localStorage.setItem(`sessions_${studentEmail}`, JSON.stringify(sessions));
+        alert("تم حفظ البيانات والجدول بنجاح!");
         setSelectedStudent(null);
     };
 
@@ -226,7 +288,7 @@ export default function ArabicStudentsListPage() {
                                                         onClick={() => setSelectedStudent(student)}
                                                         className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-600/20"
                                                     >
-                                                        تحديث التقدم
+                                                        تحديث التقدم / الجدولة
                                                     </button>
                                                     <Link
                                                         href="/arabic-non-native"
