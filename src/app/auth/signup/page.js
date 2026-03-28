@@ -422,7 +422,6 @@ export default function SignupPage() {
                             {error}
                         </div>
                     )}
-
                     <button
                         type="submit"
                         className="glow-button mt-4 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-l from-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white transition-all hover:from-emerald-400 hover:to-emerald-500"

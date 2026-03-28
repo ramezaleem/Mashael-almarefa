@@ -121,9 +121,6 @@ function Navbar() {
                 <span className="hidden text-xs text-emerald-200/80 sm:block">منصة تعليمية متكاملة</span>
               </div>
             </Link>
-
-
-
             <AuthButtons />
           </div>
         </div>
