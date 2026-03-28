@@ -73,7 +73,7 @@ const mapUserToSupabase = (u) => {
         age: u.age ? parseInt(u.age) : null,
         level: u.level || "",
         photo_url: u.image || "",
-        status: u.status || "active",
+        status: u.status || "نشط",
         redirect_url: redirectUrl,
         join_date: u.join_date || new Date().toISOString()
     };
