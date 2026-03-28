@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { join } from 'path';
-import { writeFileSync, mkdirSync } from 'fs';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export async function POST(request) {
   try {
@@ -11,34 +13,47 @@ export async function POST(request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size > 100 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large (Max 100MB)" }, { status: 400 });
+    if (!supabaseUrl || !supabaseAnonKey) {
+        return NextResponse.json({ error: "Supabase configuration missing" }, { status: 500 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
-
-    const uploadDir = join(process.cwd(), 'public', 'Videos');
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
     
-    // Ensure directory exists synchronously
-    mkdirSync(uploadDir, { recursive: true });
-
-    // Generate safe unique name
+    // Choose bucket based on file type
+    const isImage = file.type.startsWith('image/');
+    const bucketName = isImage ? 'avatars' : 'videos';
+    
+    // Generate unique name
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
     const filename = `${Date.now()}-${sanitizedName}`;
-    const path = join(uploadDir, filename);
+    
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Upload to Supabase
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(filename, arrayBuffer, {
+          contentType: file.type,
+          upsert: false
+      });
 
-    // Write file synchronously to ensure it's fully flushed before returning 
-    writeFileSync(path, buffer);
-    console.log(`File synchronized to ${path}`);
+    if (uploadError) {
+        console.error("Supabase Storage Error:", uploadError);
+        return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    }
+
+    // Get Public URL
+    const { data: publicUrlData } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filename);
 
     return NextResponse.json({ 
       success: true, 
-      url: `/Videos/${filename}`,
+      url: publicUrlData.publicUrl,
       name: file.name
     });
   } catch (error) {
-    console.error("Upload Error:", error);
+    console.error("Global Upload Error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
