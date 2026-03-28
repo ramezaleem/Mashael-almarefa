@@ -38,7 +38,7 @@ export default function AdminTeacherSessionsPage() {
 
       setTeachers(teachersData);
     };
-    
+
     fetchTeachers();
   }, []);
 
