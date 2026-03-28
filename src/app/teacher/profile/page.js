@@ -18,6 +18,8 @@ const CURRICULA_SUBJECTS = [
     { id: "english", name: "اللغة الإنجليزية", icon: "🔤" },
     { id: "social", name: "الدراسات الاجتماعية", icon: "🌍" },
     { id: "islamic", name: "التربية الإسلامية", icon: "🌙" },
+    { id: "french", name: "اللغة الفرنسية", icon: "🇫🇷" },
+    { id: "german", name: "اللغة الألمانية", icon: "🇩🇪" },
 ];
 
 export default function TeacherProfilePage() {
@@ -58,31 +60,32 @@ export default function TeacherProfilePage() {
                     const dbUser = allUsers.find(u => u.email === currentEmail);
 
                     // Initialize from session/database data
-                    const deptId = DEPARTMENTS.find(d => d.name === (dbUser?.department || data.department))?.id || "quran";
+                    const deptName = dbUser?.department || data.department || "";
+                    const deptId = DEPARTMENTS.find(d => d.name === deptName)?.id || "quran";
+                    const initialSubjects = dbUser?.subjects || data.subjects || [];
+                    
                     const initialProfile = {
                         ...profile,
                         id: dbUser?.id, // Capture Supabase ID
                         name: dbUser?.name || data.name || "معلم جديد",
                         email: currentEmail,
                         department: deptId,
-                        selectedSubjects: dbUser?.subjects || data.subjects || [],
-                        specialization: dbUser?.course || data.course || (data.department ? `${data.department}` : "لم يتم تحديد القسم"),
+                        selectedSubjects: initialSubjects,
+                        specialization: dbUser?.course || data.course || (deptName ? `${deptName}${initialSubjects.length > 0 ? ` (${initialSubjects.join("، ")})` : ""}` : "لم يتم تحديد القسم"),
                         phone: dbUser?.phone || data.phone || "",
+                        image: dbUser?.image || data.image || "",
+                        status: dbUser?.status || data.status || "نشط",
+                        bio: dbUser?.bio || data.bio || "",
                     };
 
+                    // Merge with extended local profile data
                     const savedProfile = localStorage.getItem(`teacher_profile_${currentEmail}`);
                     if (savedProfile) {
                         const parsed = JSON.parse(savedProfile);
                         setProfile({
                             ...initialProfile,
                             ...parsed,
-                            // Keep the current central record authoritative for identity/teaching data.
-                            name: initialProfile.name,
-                            department: initialProfile.department,
-                            selectedSubjects: initialProfile.selectedSubjects,
-                            specialization: initialProfile.specialization,
-                            phone: initialProfile.phone || parsed.phone || "",
-                            status: parsed.status || initialProfile.status,
+                            ...initialProfile, // Database record takes priority!
                         });
                     } else {
                         setProfile(initialProfile);

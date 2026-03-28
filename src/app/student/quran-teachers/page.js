@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import TeacherBio from "@/components/teacher-bio";
+import { getLocalUsers } from "@/utils/local-db";
 
 
 
@@ -13,43 +14,47 @@ export default function QuranTeachersPage() {
     const [teachers, setTeachers] = useState([]);
 
     useEffect(() => {
-        const cookies = document.cookie.split("; ");
-        const sessionCookie = cookies.find(c => c.startsWith("session="));
-        if (sessionCookie) {
-            try {
-                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
-                const decoded = decodeURIComponent(atob(base64));
-                const data = JSON.parse(decoded);
-                setStudent(data);
-                if (data.course) setCourse(data.course);
+        const fetchTeachers = async () => {
+            const cookies = document.cookie.split("; ");
+            const sessionCookie = cookies.find(c => c.startsWith("session="));
+            if (sessionCookie) {
+                try {
+                    const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                    const decoded = decodeURIComponent(atob(base64));
+                    const data = JSON.parse(decoded);
+                    setStudent(data);
+                    if (data.course) setCourse(data.course);
 
-                // Fetch real teachers from "app_users"
-                const allUsers = JSON.parse(localStorage.getItem("app_users") || "[]");
-                const quranTeachers = allUsers
-                    .filter(u => u.role === "teacher" && (u.department === "quran" || u.department === "ركن القرآن الكريم"))
-                    .map(u => {
-                        const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
-                        return {
-                            id: u.id,
-                            name: u.name,
-                            email: u.email,
-                            specialization: profile.specialization || "تحفيظ وتجويد",
-                            available: profile.available || "متاح للتواصل",
-                            phone: u.phone,
-                            rating: profile.rating || "5.0",
-                            image: profile.image || "",
-                            bio: profile.bio || `معلم متخصص في ${course}، يمتلك مهارات عالية في التواصل والتدريس بأساليب مبتكرة.`
-                        };
-                    });
-                setTeachers(quranTeachers);
+                    // Fetch real teachers from Supabase via getLocalUsers
+                    const allUsers = await getLocalUsers();
+                    const quranTeachers = allUsers
+                        .filter(u => u.role === "teacher" && (u.department?.includes("القرآن") || u.course?.includes("القرآن") || u.department?.includes("quran")))
+                        .map(u => {
+                            const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
+                            return {
+                                id: u.id,
+                                name: u.name,
+                                email: u.email,
+                                specialization: u.specialization || profile.specialization || "تحفيظ وتجويد",
+                                available: u.available || profile.available || "متاح للتواصل",
+                                phone: u.phone,
+                                rating: u.rating || profile.rating || "5.0",
+                                image: u.image || profile.image || "",
+                                bio: u.bio || profile.bio || `معلم متخصص في ${course}، يمتلك مهارات عالية في التواصل والتدريس بأساليب مبتكرة.`
+                            };
+                        });
+                    setTeachers(quranTeachers);
 
-                const profile = localStorage.getItem(`student_profile_${data.email}`);
-                if (profile) {
-                    const parsed = JSON.parse(profile);
-                    setAssignedTeacher(parsed.assignedTeacher || "");
-                }
-            } catch { }
-        }
+                    const studentProf = localStorage.getItem(`student_profile_${data.email}`);
+                    if (studentProf) {
+                        const parsed = JSON.parse(studentProf);
+                        setAssignedTeacher(parsed.assignedTeacher || "");
+                    }
+                } catch { }
+            }
+        };
+
+        fetchTeachers();
     }, [course]);
 
     const handleSubscribe = (teacherName, teacherEmail) => {
@@ -58,11 +63,11 @@ export default function QuranTeachersPage() {
         const isSubscribed = assignedTeacher === teacherName;
         const newTeacher = isSubscribed ? "" : teacherName;
         const newEmail = isSubscribed ? "" : teacherEmail;
-        
+
         const updated = { ...profile, assignedTeacher: newTeacher, assignedTeacherEmail: newEmail };
         localStorage.setItem(`student_profile_${student.email}`, JSON.stringify(updated));
         setAssignedTeacher(newTeacher);
-        
+
         const S = require("sweetalert2");
         S.fire({
             title: newTeacher ? "تم الاشتراك بنجاح!" : "تم إلغاء الاشتراك",
@@ -159,11 +164,10 @@ export default function QuranTeachersPage() {
                                 <div className="p-6 pt-0 mt-auto flex flex-col gap-2">
                                     <button
                                         onClick={() => handleSubscribe(teacher.name, teacher.email)}
-                                        className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-xs font-bold transition-all ${
-                                            assignedTeacher === teacher.name 
-                                            ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100" 
-                                            : "border-emerald-600 bg-white text-emerald-600 hover:bg-emerald-50"
-                                        }`}
+                                        className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-xs font-bold transition-all ${assignedTeacher === teacher.name
+                                                ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
+                                                : "border-emerald-600 bg-white text-emerald-600 hover:bg-emerald-50"
+                                            }`}
                                     >
                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={assignedTeacher === teacher.name ? "M6 18L18 6M6 6l12 12" : "M12 4v16m8-8H4"} />

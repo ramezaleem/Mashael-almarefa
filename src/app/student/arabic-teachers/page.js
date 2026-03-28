@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import TeacherBio from "@/components/teacher-bio";
+import { getLocalUsers } from "@/utils/local-db";
 
 export default function ArabicTeachersPage() {
     const [course, setCourse] = useState("العربية لغير الناطقين");
@@ -11,43 +12,47 @@ export default function ArabicTeachersPage() {
     const [teachers, setTeachers] = useState([]);
 
     useEffect(() => {
-        const cookies = document.cookie.split("; ");
-        const sessionCookie = cookies.find(c => c.startsWith("session="));
-        if (sessionCookie) {
-            try {
-                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
-                const decoded = decodeURIComponent(atob(base64));
-                const data = JSON.parse(decoded);
-                setStudent(data);
-                if (data.course) setCourse(data.course);
+        const fetchTeachers = async () => {
+            const cookies = document.cookie.split("; ");
+            const sessionCookie = cookies.find(c => c.startsWith("session="));
+            if (sessionCookie) {
+                try {
+                    const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                    const decoded = decodeURIComponent(atob(base64));
+                    const data = JSON.parse(decoded);
+                    setStudent(data);
+                    if (data.course) setCourse(data.course);
 
-                // Fetch real teachers from "app_users"
-                const allUsers = JSON.parse(localStorage.getItem("app_users") || "[]");
-                const arabicTeachers = allUsers
-                    .filter(u => u.role === "teacher" && (u.department === "arabic-non-native" || u.department === "اللغة العربية لغير الناطقين"))
-                    .map(u => {
-                        const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
-                        return {
-                            id: u.id,
-                            name: u.name,
-                            email: u.email,
-                            specialization: profile.specialization || "لغة عربية",
-                            available: profile.available || "متاح للتواصل",
-                            phone: u.phone,
-                            rating: profile.rating || "5.0",
-                            image: profile.image || "",
-                            bio: profile.bio || `معلم متميز في ${course}، يمتلك مهارات عالية في التواصل والتدريس بأساليب مبتكرة.`
-                        };
-                    });
-                setTeachers(arabicTeachers);
+                    // Fetch real teachers from Supabase via getLocalUsers
+                    const allUsers = await getLocalUsers();
+                    const arabicTeachers = allUsers
+                        .filter(u => u.role === "teacher" && (u.department?.includes("العربية") || u.course?.includes("العربية") || u.department?.includes("arabic")))
+                        .map(u => {
+                            const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
+                            return {
+                                id: u.id,
+                                name: u.name,
+                                email: u.email,
+                                specialization: u.specialization || profile.specialization || "لغة عربية",
+                                available: u.available || profile.available || "متاح للتواصل",
+                                phone: u.phone,
+                                rating: u.rating || profile.rating || "5.0",
+                                image: u.image || profile.image || "",
+                                bio: u.bio || profile.bio || `معلم متميز في ${course}، يمتلك مهارات عالية في التواصل والتدريس بأساليب مبتكرة.`
+                            };
+                        });
+                    setTeachers(arabicTeachers);
 
-                const profile = localStorage.getItem(`student_profile_${data.email}`);
-                if (profile) {
-                    const parsed = JSON.parse(profile);
-                    setAssignedTeacher(parsed.assignedTeacher || "");
-                }
-            } catch { }
-        }
+                    const studentProf = localStorage.getItem(`student_profile_${data.email}`);
+                    if (studentProf) {
+                        const parsed = JSON.parse(studentProf);
+                        setAssignedTeacher(parsed.assignedTeacher || "");
+                    }
+                } catch { }
+            }
+        };
+
+        fetchTeachers();
     }, [course]);
 
     const handleSubscribe = (teacherName, teacherEmail) => {
@@ -60,7 +65,7 @@ export default function ArabicTeachersPage() {
         const updated = { ...profile, assignedTeacher: newTeacher, assignedTeacherEmail: newEmail };
         localStorage.setItem(`student_profile_${student.email}`, JSON.stringify(updated));
         setAssignedTeacher(newTeacher);
-        
+
         const S = require("sweetalert2");
         S.fire({
             title: newTeacher ? "تم الاشتراك بنجاح!" : "تم إلغاء الاشتراك",
@@ -156,11 +161,10 @@ export default function ArabicTeachersPage() {
                                 <div className="p-6 pt-0 mt-auto flex flex-col gap-2">
                                     <button
                                         onClick={() => handleSubscribe(teacher.name, teacher.email)}
-                                        className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-xs font-bold transition-all ${
-                                            assignedTeacher === teacher.name 
-                                            ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100" 
-                                            : "border-emerald-600 bg-white text-emerald-600 hover:bg-emerald-50"
-                                        }`}
+                                        className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-xs font-bold transition-all ${assignedTeacher === teacher.name
+                                                ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
+                                                : "border-emerald-600 bg-white text-emerald-600 hover:bg-emerald-50"
+                                            }`}
                                     >
                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={assignedTeacher === teacher.name ? "M6 18L18 6M6 6l12 12" : "M12 4v16m8-8H4"} />
@@ -176,10 +180,10 @@ export default function ArabicTeachersPage() {
                                     >
                                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                                         </svg>
-                                         تواصل عبر واتساب
-                                     </a>
-                                 </div>
+                                        </svg>
+                                        تواصل عبر واتساب
+                                    </a>
+                                </div>
                             </div>
                         ))}
                     </div>

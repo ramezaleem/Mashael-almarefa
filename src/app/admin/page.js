@@ -204,9 +204,16 @@ export default function AdminUsersPage() {
                                                 <span className="text-xs font-mono font-bold text-emerald-800">#{user.id}</span>
                                             </td>
                                             <td className="py-4 pl-4">
-                                                <span className="inline-flex rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                                                    {user.course}
-                                                </span>
+                                                <div className="flex flex-col gap-1 items-start">
+                                                    <span className="inline-flex rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                                                        {user.course || user.department}
+                                                    </span>
+                                                    {(user.course === "المناهج الدراسية" || user.department === "المناهج الدراسية") && (user.subjects?.length > 0 || user.registered_subjects?.length > 0) && (
+                                                        <span className="text-[10px] font-bold text-slate-500 mr-1">
+                                                            ({(user.subjects || user.registered_subjects).join("، ")})
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             {activeTab === "student" ? (
                                                 <td className="py-4 pl-4">

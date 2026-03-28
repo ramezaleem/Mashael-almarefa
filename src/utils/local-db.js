@@ -31,6 +31,10 @@ const mapUserFromSupabase = (u) => {
     }
 
     // 3. Construct flat object for UI
+    const subjects = combined.registered_subjects || (combined.role === 'teacher' && (combined.specialization?.includes('(') || combined.course?.includes('(')) 
+        ? (combined.specialization || combined.course).match(/\((.*)\)/)?.[1].split('،').map(s => s.trim()) 
+        : combined.subjects) || [];
+
     return {
         ...combined,
         id: combined.id || combined.user_id,
@@ -38,7 +42,9 @@ const mapUserFromSupabase = (u) => {
         image: combined.photo_url || combined.image || "",
         redirect: redirect,
         phone: combined.phone || "",
-        course: combined.course || combined.department || "",
+        department: combined.department || combined.course || "",
+        course: combined.role === 'teacher' ? (combined.specialization || combined.course || combined.department || "") : (combined.course || combined.department || ""),
+        subjects: subjects,
         status: combined.status || "نشط",
         guardian: combined.guardian_name || combined.guardian || "",
         guardianPhone: combined.guardian_phone || combined.guardianPhone || "",
@@ -58,9 +64,8 @@ const mapUserToSupabase = (u) => {
     }
 
     // Exact field names from your 'users' table document
-    return {
+    const result = {
         email: u.email,
-        password: u.password || "",
         name: u.name,
         role: u.role,
         course: u.course || "",
@@ -72,6 +77,12 @@ const mapUserToSupabase = (u) => {
         redirect_url: redirectUrl,
         join_date: u.join_date || new Date().toISOString()
     };
+
+    if (u.password) {
+        result.password = u.password;
+    }
+
+    return result;
 };
 
 export const getLocalUsers = async (forceRefresh = false) => {
@@ -124,9 +135,13 @@ export const saveUser = async (user) => {
 
         // 2. Insert into profile table (Using 'students_profile' and 'teachers_profile')
         if (user.role === 'teacher') {
+            let spec = user.course || user.department || "";
+            if (user.department === "المناهج الدراسية" && user.subjects?.length > 0) {
+                spec += ` (${user.subjects.join("، ")})`;
+            }
             await client.from('teachers_profile').insert([{
                 user_id: newUser.id,
-                specialization: user.course || "",
+                specialization: spec,
                 bio: user.bio || "",
                 is_on_leave: user.status === "إجازة",
                 rating: 5.0,

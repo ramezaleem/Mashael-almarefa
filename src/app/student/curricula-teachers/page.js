@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import TeacherBio from "@/components/teacher-bio";
+import { getLocalUsers } from "@/utils/local-db";
 
 const SUBJECTS = [
     { id: "arabic", name: "اللغة العربية", icon: "📚" },
@@ -23,44 +24,58 @@ export default function CurriculaTeachersPage() {
     const [teachers, setTeachers] = useState([]);
 
     useEffect(() => {
-        const cookies = document.cookie.split("; ");
-        const sessionCookie = cookies.find(c => c.startsWith("session="));
-        if (sessionCookie) {
-            try {
-                const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
-                const decoded = decodeURIComponent(atob(base64));
-                const data = JSON.parse(decoded);
-                setStudent(data);
-                if (data.course) setCourse(data.course);
+        const fetchTeachers = async () => {
+            const cookies = document.cookie.split("; ");
+            const sessionCookie = cookies.find(c => c.startsWith("session="));
+            if (sessionCookie) {
+                try {
+                    const base64 = decodeURIComponent(sessionCookie.split("=")[1]);
+                    const decoded = decodeURIComponent(atob(base64));
+                    const sessionData = JSON.parse(decoded);
+                    
+                    // Fetch all users to get fresh data for both student and teachers
+                    const allUsers = await getLocalUsers();
+                    
+                    // 1. Get fresh student data
+                    const freshStudent = allUsers.find(u => u.email === sessionData.email);
+                    if (freshStudent) {
+                        setStudent(freshStudent);
+                        if (freshStudent.course) setCourse(freshStudent.course);
+                    } else {
+                        setStudent(sessionData);
+                        if (sessionData.course) setCourse(sessionData.course);
+                    }
 
-                // Fetch real teachers from "app_users"
-                const allUsers = JSON.parse(localStorage.getItem("app_users") || "[]");
-                const curriculaTeachers = allUsers
-                    .filter(u => u.role === "teacher" && (u.department === "curricula" || u.department === "المناهج الدراسية"))
-                    .map(u => {
-                        const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
-                        return {
-                            id: u.id,
-                            name: u.name,
-                            email: u.email,
-                            specialization: profile.specialization || "معلم مناهج",
-                            available: profile.available || "متاح للتواصل",
-                            phone: u.phone,
-                            rating: profile.rating || "5.0",
-                            image: profile.image || "",
-                            bio: profile.bio || `معلم متخصص في المناهج الدراسية، يمتلك مهارات عالية في التبسيط والتدريس.`,
-                            subjects: u.subjects || profile.selectedSubjects || []
-                        };
-                    });
-                setTeachers(curriculaTeachers);
+                    // 2. Fetch and map curricula teachers
+                    const curriculaTeachers = allUsers
+                        .filter(u => u.role === "teacher" && (u.department?.includes("المناهج") || u.course?.includes("المناهج") || u.specialization?.includes("المناهج") || u.department?.includes("curricula")))
+                        .map(u => {
+                            const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
+                            return {
+                                id: u.id,
+                                name: u.name,
+                                email: u.email,
+                                specialization: u.specialization || profile.specialization || u.course || "معلم مناهج",
+                                available: u.available || profile.available || "متاح للتواصل",
+                                phone: u.phone,
+                                rating: u.rating || profile.rating || "5.0",
+                                image: u.image || profile.image || "",
+                                bio: u.bio || profile.bio || `معلم متخصص في المناهج الدراسية، يمتلك مهارات عالية في التبسيط والتدريس.`,
+                                subjects: u.subjects || []
+                            };
+                        });
+                    setTeachers(curriculaTeachers);
 
-                const profile = localStorage.getItem(`student_profile_${data.email}`);
-                if (profile) {
-                    const parsed = JSON.parse(profile);
-                    setAssignedTeacher(parsed.assignedTeacher || "");
-                }
-            } catch { }
-        }
+                    const studentProf = localStorage.getItem(`student_profile_${sessionData.email}`);
+                    if (studentProf) {
+                        const parsed = JSON.parse(studentProf);
+                        setAssignedTeacher(parsed.assignedTeacher || "");
+                    }
+                } catch { }
+            }
+        };
+
+        fetchTeachers();
     }, [course]);
 
     const handleSubscribe = (teacherName, teacherEmail) => {
@@ -74,7 +89,7 @@ export default function CurriculaTeachersPage() {
         const updated = { ...profile, assignedTeacher: newTeacher, assignedTeacherEmail: newEmail };
         localStorage.setItem(`student_profile_${student.email}`, JSON.stringify(updated));
         setAssignedTeacher(newTeacher);
-        
+
         S.fire({
             title: newTeacher ? "تم الاشتراك بنجاح!" : "تم إلغاء الاشتراك",
             text: newTeacher ? `أنت الآن مشترك مع ${teacherName}` : "يمكنك الاشتراك مع معلم آخر في أي وقت",
@@ -85,8 +100,8 @@ export default function CurriculaTeachersPage() {
         });
     };
 
-    const filteredTeachers = selectedSubject 
-        ? teachers.filter(t => t.subjects.includes(selectedSubject.id))
+    const filteredTeachers = selectedSubject
+        ? teachers.filter(t => t.subjects.includes(selectedSubject.name) || t.specialization.includes(selectedSubject.name))
         : [];
 
     return (
@@ -101,7 +116,7 @@ export default function CurriculaTeachersPage() {
                         {selectedSubject ? `اختر معلمك في ${selectedSubject.name}` : "اختر المادة الدراسية"}
                     </h1>
                     <p className="mx-auto max-w-xl text-base text-slate-600 sm:text-lg text-balance">
-                        {selectedSubject 
+                        {selectedSubject
                             ? `قائمة بالمعلمين المتخصصين في ${selectedSubject.name}. تواصل معهم مباشرة لبدء التعلم.`
                             : "يرجى اختيار المادة الدراسية أولاً لعرض المعلمين المتاحين المتخصصين بها."
                         }
@@ -111,7 +126,9 @@ export default function CurriculaTeachersPage() {
                 {!selectedSubject ? (
                     /* Subjects Selection Grid */
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {SUBJECTS.map((subject) => (
+                        {(student?.subjects?.length > 0 
+                            ? SUBJECTS.filter(s => student.subjects.includes(s.name))
+                            : SUBJECTS).map((subject) => (
                             <button
                                 key={subject.id}
                                 onClick={() => setSelectedSubject(subject)}
@@ -128,7 +145,7 @@ export default function CurriculaTeachersPage() {
                 ) : (
                     /* Teachers View for Selected Subject */
                     <>
-                        <button 
+                        <button
                             onClick={() => setSelectedSubject(null)}
                             className="mb-8 flex items-center gap-2 font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
                         >
@@ -201,11 +218,10 @@ export default function CurriculaTeachersPage() {
                                         <div className="p-6 pt-0 mt-auto flex flex-col gap-2">
                                             <button
                                                 onClick={() => handleSubscribe(teacher.name, teacher.email)}
-                                                className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-xs font-bold transition-all ${
-                                                    assignedTeacher === teacher.name 
-                                                    ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100" 
-                                                    : "border-emerald-600 bg-white text-emerald-600 hover:bg-emerald-50"
-                                                }`}
+                                                className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-xs font-bold transition-all ${assignedTeacher === teacher.name
+                                                        ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100"
+                                                        : "border-emerald-600 bg-white text-emerald-600 hover:bg-emerald-50"
+                                                    }`}
                                             >
                                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={assignedTeacher === teacher.name ? "M6 18L18 6M6 6l12 12" : "M12 4v16m8-8H4"} />

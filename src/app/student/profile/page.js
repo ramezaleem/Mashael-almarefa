@@ -3,6 +3,23 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getLocalUsers, updateUser } from "@/utils/local-db";
 
+const DEPARTMENTS = [
+  { id: "quran", name: "ركن القرآن الكريم" },
+  { id: "arabic", name: "اللغة العربية لغير الناطقين" },
+  { id: "curricula", name: "المناهج الدراسية" },
+];
+
+const CURRICULA_SUBJECTS = [
+    { id: "math", name: "الرياضيات" },
+    { id: "science", name: "العلوم" },
+    { id: "arabic_school", name: "اللغة العربية" },
+    { id: "english", name: "اللغة الإنجليزية" },
+    { id: "social", name: "الدراسات الاجتماعية" },
+    { id: "islamic", name: "التربية الإسلامية" },
+    { id: "french", name: "اللغة الفرنسية" },
+    { id: "german", name: "اللغة الألمانية" },
+];
+
 function StatCard({ label, value, hint }) {
   return (
     <article className="modern-card rounded-2xl border border-emerald-100/70 p-5 shadow-lg shadow-emerald-900/5">
@@ -21,6 +38,8 @@ export default function StudentProfilePage() {
     id: "غير محدد",
     level: "لم يتم التحديد بعد",
     course: "طالب جديد",
+    department: "",
+    subjects: [],
     age: "",
     country: "غير محدد",
     guardian: "غير محدد",
@@ -74,9 +93,11 @@ export default function StudentProfilePage() {
               id: dbUser?.id || data.id,
               name: dbUser?.name || data.name || "طالب جديد",
               course: dbUser?.course || data.course || "بوابة الطالب",
+              department: dbUser?.department || data.department || "",
+              subjects: dbUser?.registered_subjects || data.subjects || [],
               student_code: dbUser?.student_code || data.id || `STD-${Math.floor(10000 + Math.random() * 90000)}`,
-              level: dbUser?.level || (data.department 
-                  ? `${data.department}${data.subjects?.length > 0 ? ` - (${data.subjects.join("، ")})` : ""}` 
+              level: dbUser?.level || ((dbUser?.department || data.department) 
+                  ? `${dbUser?.department || data.department}${(dbUser?.registered_subjects || data.subjects)?.length > 0 ? ` - (${(dbUser?.registered_subjects || data.subjects).join("، ")})` : ""}` 
                   : "بانتظار تحديد المستوى"),
               email: currentEmail,
               guardian: dbUser?.guardian || data.guardian || "غير محدد",
@@ -84,7 +105,6 @@ export default function StudentProfilePage() {
               country: dbUser?.country || data.country || data.countryName || "غير محدد",
               phone: dbUser?.phone || data.phone || data.guardianPhone || "غير محدد",
               joinDate: dbUser?.joinDate || data.joinDate || new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }),
-              assignedTeacher: ""
           };
 
           const localData = localStorage.getItem(`student_profile_${currentEmail}`);
@@ -98,8 +118,8 @@ export default function StudentProfilePage() {
                   }
               }
               setStudent({
+                  ...initialFromSession,
                   ...parsedLocal,
-                  ...initialFromSession, // DB Data takes absolute priority!
                   assignedTeacherImage: teacherImage
               });
           } else {
@@ -319,7 +339,47 @@ export default function StudentProfilePage() {
                                 />
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 mr-2">القسم الحالي</label>
+                            <select
+                                name="department"
+                                value={DEPARTMENTS.find(d => d.name === student.department)?.id || student.department}
+                                onChange={(e) => {
+                                    const deptId = e.target.value;
+                                    const deptName = DEPARTMENTS.find(d => d.id === deptId)?.name || deptId;
+                                    setStudent(prev => ({ ...prev, department: deptName }));
+                                }}
+                                className="w-full rounded-xl border border-emerald-100 bg-white/50 px-4 py-3 text-sm focus:border-emerald-500 outline-none transition-all appearance-none"
+                            >
+                                <option value="">اختر القسم</option>
+                                {DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                            </select>
+                        </div>
                     </div>
+
+                    {student.department === "المناهج الدراسية" && (
+                        <div className="space-y-3">
+                            <label className="text-xs font-bold text-slate-500 mr-2">المواد الدراسية المسجلة</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {CURRICULA_SUBJECTS.map((sub) => (
+                                    <label key={sub.id} className="flex items-center gap-2 rounded-xl border border-emerald-50 bg-white/40 p-3 transition-all hover:bg-white/80 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={student.subjects?.includes(sub.name)}
+                                            onChange={(e) => {
+                                                const updated = e.target.checked
+                                                    ? [...(student.subjects || []), sub.name]
+                                                    : (student.subjects || []).filter(s => s !== sub.name);
+                                                setStudent(prev => ({ ...prev, subjects: updated }));
+                                            }}
+                                            className="h-4 w-4 rounded accent-emerald-600"
+                                        />
+                                        <span className="text-xs font-bold text-emerald-950">{sub.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-500 mr-2">رقم الهاتف للتواصل</label>
@@ -360,6 +420,19 @@ export default function StudentProfilePage() {
                                 <span className="text-lg font-black text-emerald-950">{student.country}</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">القسم المسجل به</span>
+                            <span className="text-lg font-bold text-emerald-900">{student.department || "بانتظار التحديد"}</span>
+                        </div>
+                        {student.department === "المناهج الدراسية" && (
+                             <div className="flex flex-col gap-1">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">المواد الدراسية</span>
+                                <span className="text-sm font-bold text-emerald-700">{student.subjects?.length > 0 ? student.subjects.join("، ") : "لم يتم اختيار مواد بعد"}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
