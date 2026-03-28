@@ -56,10 +56,14 @@ export default function StudentProfilePage() {
           const data = JSON.parse(decoded);
           const currentEmail = data.email;
           
-          // Fetch sessions assigned to this student
-          const savedSessions = localStorage.getItem(`sessions_${currentEmail}`);
+          // Read the current session schedule key, but keep legacy support for older data.
+          const savedSessions =
+            localStorage.getItem(`sessions_${currentEmail}`) ||
+            localStorage.getItem(`upcoming_sessions_${currentEmail}`);
           if (savedSessions) {
               setUpcomingSessions(JSON.parse(savedSessions).slice(0, 3));
+          } else {
+              setUpcomingSessions([]);
           }
 
           // Load profile data
