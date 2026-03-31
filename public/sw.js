@@ -1,7 +1,8 @@
 const CACHE_NAME = 'mashael-v1';
 const ASSETS = [
   '/',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon-192x192.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -9,11 +10,17 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {
+  // Offline support strategy: Network first falling back to cache
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => response || fetch(event.request))
+    fetch(event.request)
+      .catch(() => caches.match(event.request))
   );
 });
