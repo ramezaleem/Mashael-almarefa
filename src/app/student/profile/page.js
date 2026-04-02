@@ -96,6 +96,7 @@ export default function StudentProfilePage() {
 
           const initialFromSession = {
             id: dbUser?.id || data.id,
+            image: dbUser?.image || data.image || "",
             name: dbUser?.name || data.name || "طالب جديد",
             course: dbUser?.course || data.course || "بوابة الطالب",
             department: deptNamesStr,

@@ -8,7 +8,7 @@ export default function StudentNavbar({ sectionTitle, links, ctaLabel, ctaHref }
     const [session, setSession] = useState(null);
     const router = useRouter();
 
-    const loadSession = () => {
+    const loadSession = async () => {
         const cookies = document.cookie.split("; ");
         const roleCookie = cookies.find(c => c.startsWith("userRole="));
         if (roleCookie) {
@@ -22,11 +22,23 @@ export default function StudentNavbar({ sectionTitle, links, ctaLabel, ctaHref }
                         const data = JSON.parse(decoded);
                         
                         // Check for local profile updates (image, name, etc.)
-                        const localProfile = localStorage.getItem(`student_profile_${data.email}`);
+                        const localProfile = typeof window !== 'undefined' ? localStorage.getItem(`student_profile_${data.email}`) : null;
                         if (localProfile) {
                             const parsedLocal = JSON.parse(localProfile);
                             if (parsedLocal.image) data.image = parsedLocal.image;
                             if (parsedLocal.name) data.name = parsedLocal.name;
+                        }
+
+                        // Fallback to database for image if missing
+                        if (!data.image) {
+                            try {
+                                const { getLocalUsers } = await import("@/utils/local-db");
+                                const allUsers = await getLocalUsers();
+                                const dbUser = allUsers.find(u => u.email === data.email);
+                                if (dbUser?.image) {
+                                    data.image = dbUser.image;
+                                }
+                            } catch (e) { console.error(e); }
                         }
                         
                         setSession(data);
