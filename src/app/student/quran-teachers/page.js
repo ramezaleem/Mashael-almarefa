@@ -27,6 +27,7 @@ export default function QuranTeachersPage() {
                     const profile = JSON.parse(localStorage.getItem(`teacher_profile_${u.email}`) || "{}");
                     return {
                         id: u.id,
+                        memberNumber: u.memberNumber,
                         name: u.name,
                         email: u.email,
                         specialization: u.specialization || profile.specialization || "تحفيظ وتجويد",
@@ -121,7 +122,7 @@ export default function QuranTeachersPage() {
                                         </div>
                                         <div className="flex flex-col">
                                             <h3 className="font-bold text-lg text-emerald-950">{teacher.name}</h3>
-                                            <span className="text-xs font-medium text-emerald-600/80 mt-0.5">رمز: <span dir="ltr">{teacher.id}</span></span>
+                                            <span className="text-xs font-medium text-emerald-600/80 mt-0.5">رمز: <span dir="ltr">{teacher.memberNumber || teacher.id.slice(0,8)}</span></span>
                                         </div>
                                     </div>
 
