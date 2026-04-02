@@ -75,8 +75,12 @@ export default function LoginPage() {
     document.cookie = `userRole=${userByEmail.role}; path=/; ${cookieOptions}`;
     document.cookie = `session=${encodedSession}; path=/; ${cookieOptions}`;
 
+    const targetRedirect = userByEmail.redirect || (userByEmail.role === "teacher" ? "/teacher/profile" : (userByEmail.role === "student" ? "/student/profile" : "/"));
+    
     setError("");
-    router.push(userByEmail.redirect);
+    
+    // Use window.location.href for login to ensure a clean state and full cookie recognition
+    window.location.href = targetRedirect;
   };
 
   return (
