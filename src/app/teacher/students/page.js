@@ -183,7 +183,12 @@ export default function TeacherStudentsPage() {
                 const filtered = allUsers.filter(u => {
                     if (u.role !== "student") return false;
                     const profile = JSON.parse(localStorage.getItem(`student_profile_${u.email}`) || "{}");
-                    return profile.assignedTeacherEmail === teacherEmail;
+                    const tEmail = teacherEmail?.trim().toLowerCase();
+                    const sTeacherEmail = profile.assignedTeacherEmail?.trim().toLowerCase();
+                    const sTeacherName = profile.assignedTeacher?.trim().toLowerCase();
+                    const tName = sessionData.name?.trim().toLowerCase();
+                    
+                    return sTeacherEmail === tEmail || (sTeacherName && sTeacherName === tName);
                 });
 
                 // Fetch images from student profiles
