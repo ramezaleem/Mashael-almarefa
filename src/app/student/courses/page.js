@@ -214,10 +214,9 @@ export default function StudentCoursesPage() {
                         
                         <div className="flex flex-col lg:flex-row min-h-[500px]">
                             {/* Left Side: Media Cover */}
-                            <div className="lg:w-1/2 p-8 bg-slate-50 flex items-center justify-center">
-                                <div className="relative w-full aspect-video lg:aspect-square group transition-all duration-500 overflow-hidden rounded-[2.5rem] shadow-2xl shadow-emerald-950/10 border-4 border-white">
-                                    {/* 
-                                    {(!videoError && selectedVideo.videoUrl) ? (
+                            <div className="lg:w-1/2 p-8 bg-slate-50 flex items-center justify-center border-l border-slate-100">
+                                <div className="relative w-full aspect-video group transition-all duration-500 overflow-hidden rounded-[2.5rem] shadow-2xl shadow-emerald-950/10 border-4 border-white bg-slate-900 flex items-center justify-center">
+                                    {(selectedVideo.videoUrl && selectedVideo.videoUrl !== "#") ? (
                                         <CourseVideoPlayer 
                                             videoUrl={selectedVideo.videoUrl} 
                                             poster={selectedVideo.thumbnailUrl}
@@ -225,34 +224,34 @@ export default function StudentCoursesPage() {
                                             onVideoError={handleVideoError}
                                         />
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center text-center p-10 w-full h-full bg-slate-900/50">
-                                            <div className="h-20 w-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
-                                                <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <div className="relative w-full h-full group bg-emerald-50">
+                                            {selectedVideo.thumbnailUrl ? (
+                                                <img 
+                                                    src={selectedVideo.thumbnailUrl} 
+                                                    alt={selectedVideo.title} 
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                />
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-500 text-8xl">
+                                                    {selectedVideo.icon}
+                                                    <p className="text-sm font-black mt-4 text-emerald-700/40">لا يوجد فيديو أو صورة للعرض</p>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-emerald-950/10 mix-blend-overlay group-hover:opacity-0 transition-opacity"></div>
+                                        </div>
+                                    )}
+
+                                    {videoError && (
+                                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center text-center p-10 bg-slate-900/90 backdrop-blur-sm animate-in fade-in">
+                                            <div className="h-20 w-20 bg-red-500/10 rounded-full flex items-center justify-center mb-4 border border-red-500/20">
+                                                <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             </div>
-                                            <p className="text-white font-bold text-lg mb-2">تعذر عرض المشغل المباشر</p>
-                                            <p className="text-slate-400 text-sm max-w-md">يرجى تجربة الرفع مرة أخرى أو استخدام الرابط البديل للمشاهدة الخارجية.</p>
-                                            <a href={selectedVideo.videoUrl} download className="mt-6 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black transition-all shadow-xl shadow-emerald-600/20">
-                                                تحميل ومشاهدة الفيديو
-                                            </a>
+                                            <p className="text-white font-bold text-lg mb-2">تعذر تشغيل الفيديو</p>
+                                            <p className="text-slate-400 text-sm max-w-md">الرابط قد يكون غير صالح أو انتهت صلاحيته. يرجى تجديده من لوحة التحكم.</p>
                                         </div>
                                     )}
-                                    */}
-                                    {selectedVideo.thumbnailUrl ? (
-                                        <img 
-                                            src={selectedVideo.thumbnailUrl} 
-                                            alt={selectedVideo.title} 
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                        />
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-500 text-8xl">
-                                            {selectedVideo.icon}
-                                            <p className="text-sm font-black mt-4 text-emerald-700/40">لا توجد صورة للعرض</p>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-emerald-950/10 mix-blend-overlay group-hover:opacity-0 transition-opacity"></div>
                                 </div>
                             </div>
 
