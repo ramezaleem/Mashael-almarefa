@@ -39,6 +39,7 @@ export default function StudentCoursesPage() {
             title: video.title,
             description: video.notes || "لا يوجد وصف لهذه الدورة حالياً.",
             videoUrl: video.videoUrl,
+            thumbnailUrl: video.thumbnailUrl,
             date: video.date,
             icon: '🎥'
         }));
@@ -110,8 +111,14 @@ export default function StudentCoursesPage() {
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                     {assignedCourses.map((course) => (
                         <article key={course.id} className="modern-card group flex flex-col overflow-hidden rounded-[2.5rem] border border-white bg-white/80 shadow-2xl shadow-emerald-900/5 transition-all duration-500 hover:-translate-y-3 hover:shadow-emerald-900/10">
-                            <div className="relative h-52 overflow-hidden bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-6xl group-hover:scale-105 transition-transform duration-500">
-                                <span className="drop-shadow-lg">{course.icon}</span>
+                            <div className="relative h-52 overflow-hidden bg-slate-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                                {course.thumbnailUrl ? (
+                                    <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-6xl">
+                                        <span className="drop-shadow-lg">{course.icon}</span>
+                                    </div>
+                                )}
                                 <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity group-hover:opacity-100"></div>
                                 <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white border border-white/30">
                                     {course.date}
@@ -141,45 +148,113 @@ export default function StudentCoursesPage() {
 
             {selectedVideo && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 animate-in fade-in" onClick={() => setSelectedVideo(null)}>
-                    <div className="relative w-full max-w-5xl bg-[#0a0f0d] rounded-[3rem] overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in-95 flex flex-col" onClick={e => e.stopPropagation()}>
-                        <div className="p-6 bg-gradient-to-r from-emerald-900 to-black text-white flex justify-between items-center border-b border-white/5">
-                            <div>
-                                <h2 className="text-xl font-black">{selectedVideo.title}</h2>
-                                <p className="text-xs text-emerald-400 font-bold">{selectedVideo.date}</p>
+                    <div className="relative w-full max-w-5xl bg-white rounded-[3.5rem] overflow-hidden shadow-[0_20px_70px_-15px_rgba(0,0,0,0.2)] animate-in zoom-in-95 flex flex-col border border-emerald-100" onClick={e => e.stopPropagation()}>
+                        <div className="p-8 bg-gradient-to-r from-emerald-800 to-emerald-950 text-white flex justify-between items-center shadow-lg relative overflow-hidden">
+                            {/* Decorative background circle */}
+                            <div className="absolute -top-24 -left-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+                            <div className="relative z-10 flex items-center gap-4">
+                                <div className="h-14 w-14 bg-white/10 rounded-2xl backdrop-blur-md flex items-center justify-center text-3xl shadow-inner border border-white/20">
+                                    {selectedVideo.icon}
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black tracking-tight">{selectedVideo.title}</h2>
+                                    <p className="text-sm text-emerald-200 font-bold flex items-center gap-2">
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        تاريخ الإضافة: {selectedVideo.date}
+                                    </p>
+                                </div>
                             </div>
-                            <button onClick={() => setSelectedVideo(null)} className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">✕</button>
+                            <button onClick={() => setSelectedVideo(null)} className="h-12 w-12 flex items-center justify-center rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/10 hover:rotate-90">
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
                         
-                        <div className="bg-black aspect-video flex items-center justify-center relative">
-                            {(!videoError && selectedVideo.videoUrl) ? (
-                                <CourseVideoPlayer 
-                                    videoUrl={selectedVideo.videoUrl} 
-                                    title={selectedVideo.title}
-                                    onVideoError={handleVideoError}
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center text-center p-10 w-full h-full bg-slate-900/50">
-                                    <div className="h-20 w-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
-                                        <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <p className="text-white font-bold text-lg mb-2">تعذر عرض المشغل المباشر</p>
-                                    <p className="text-slate-400 text-sm max-w-md">يرجى تجربة الرفع مرة أخرى أو استخدام الرابط البديل للمشاهدة الخارجية.</p>
-                                    <a href={selectedVideo.videoUrl} download className="mt-6 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black transition-all shadow-xl shadow-emerald-600/20">
-                                        تحميل ومشاهدة الفيديو
-                                    </a>
+                        <div className="flex flex-col lg:flex-row min-h-[500px]">
+                            {/* Left Side: Media Cover */}
+                            <div className="lg:w-1/2 p-8 bg-slate-50 flex items-center justify-center">
+                                <div className="relative w-full aspect-video lg:aspect-square group transition-all duration-500 overflow-hidden rounded-[2.5rem] shadow-2xl shadow-emerald-950/10 border-4 border-white">
+                                    {/* 
+                                    {(!videoError && selectedVideo.videoUrl) ? (
+                                        <CourseVideoPlayer 
+                                            videoUrl={selectedVideo.videoUrl} 
+                                            poster={selectedVideo.thumbnailUrl}
+                                            title={selectedVideo.title}
+                                            onVideoError={handleVideoError}
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center text-center p-10 w-full h-full bg-slate-900/50">
+                                            <div className="h-20 w-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
+                                                <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-white font-bold text-lg mb-2">تعذر عرض المشغل المباشر</p>
+                                            <p className="text-slate-400 text-sm max-w-md">يرجى تجربة الرفع مرة أخرى أو استخدام الرابط البديل للمشاهدة الخارجية.</p>
+                                            <a href={selectedVideo.videoUrl} download className="mt-6 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black transition-all shadow-xl shadow-emerald-600/20">
+                                                تحميل ومشاهدة الفيديو
+                                            </a>
+                                        </div>
+                                    )}
+                                    */}
+                                    {selectedVideo.thumbnailUrl ? (
+                                        <img 
+                                            src={selectedVideo.thumbnailUrl} 
+                                            alt={selectedVideo.title} 
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-500 text-8xl">
+                                            {selectedVideo.icon}
+                                            <p className="text-sm font-black mt-4 text-emerald-700/40">لا توجد صورة للعرض</p>
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-emerald-950/10 mix-blend-overlay group-hover:opacity-0 transition-opacity"></div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
 
-                        <div className="p-8 bg-[#0a0f0d] text-white">
-                            <h3 className="text-emerald-500 font-bold mb-3 flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                ملاحظات المحتوى:
-                            </h3>
-                            <p className="text-slate-400 text-sm leading-relaxed bg-white/5 p-6 rounded-3xl border border-white/5">{selectedVideo.description}</p>
+                            {/* Right Side: Description */}
+                            <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col bg-white overflow-y-auto max-h-[60vh] lg:max-h-none">
+                                <div className="mb-8">
+                                    <h3 className="text-xl font-black text-emerald-950 mb-6 flex items-center gap-3">
+                                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </span>
+                                        تفاصيل وملاحظات المحتوى
+                                    </h3>
+                                    
+                                    <div className="space-y-6">
+                                        <div className="p-8 rounded-[2.5rem] bg-[#f8fbfa] border border-emerald-50 shadow-inner relative group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                <svg className="w-12 h-12 text-emerald-900" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H16.017C14.9124 8 14.017 7.10457 14.017 6V4L20.017 4C21.1216 4 22.017 4.89543 22.017 6V15C22.017 16.6569 20.6739 18 19.017 18H16.017C15.4647 18 15.017 18.4477 15.017 19V21H14.017ZM4 21L4 18C4 16.8954 4.89543 16 6 16H9C9.55228 16 10 15.5523 10 15V9C10 8.44772 9.55228 8 9 8H6C4.89543 8 4 7.10457 4 6V4L10 4C11.1046 4 12 4.89543 12 6V15C12 16.6569 10.6569 18 9 18H6C5.44772 18 5 18.4477 5 19V21H4Z" /></svg>
+                                            </div>
+                                            <p className="text-emerald-950 text-xl font-bold leading-[2] whitespace-pre-line text-right">
+                                                {selectedVideo.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-4 items-center p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
+                                            <div className="h-10 w-10 flex-shrink-0 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                            </div>
+                                            <p className="text-xs font-bold text-amber-800 leading-relaxed">
+                                                يرجى قراءة الملاحظات بدقة قبل البدء في المذاكرة. في حال عدم وضوح أي نقطة، يمكنك التواصل مع الدعم الفني.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-auto pt-6 border-t border-slate-100">
+                                    <button 
+                                        onClick={() => setSelectedVideo(null)}
+                                        className="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] font-black text-lg transition-all shadow-xl shadow-emerald-600/20 active:scale-95"
+                                    >
+                                        إغلاق التفاصيل والعودة
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
