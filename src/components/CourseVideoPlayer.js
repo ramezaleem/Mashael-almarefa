@@ -36,7 +36,7 @@ class VideoErrorBoundary extends Component {
   }
 }
 
-function VideoPlayerCore({ videoUrl, onVideoError }) {
+function VideoPlayerCore({ videoUrl, poster, onVideoError }) {
     const videoRef = useRef(null);
     const isDev = process.env.NODE_ENV === "development";
     
@@ -67,6 +67,7 @@ function VideoPlayerCore({ videoUrl, onVideoError }) {
             <video 
                 ref={videoRef}
                 src={finalUrl}
+                poster={poster}
                 controls
                 preload="metadata"
                 muted 

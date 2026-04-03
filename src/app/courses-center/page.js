@@ -34,8 +34,8 @@ export default function CoursesCenterPage() {
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!formData.videoFile || !formData.title) {
-            Swal.fire("تنبيه", "يرجى استكمال البيانات المطلوبة", "warning");
+        if (!formData.videoFile || !formData.title || !formData.thumbnailFile) {
+            Swal.fire("تنبيه", "يرجى استكمال البيانات المطلوبة (الفيديو والصورة المصغرة)", "warning");
             return;
         }
 
@@ -43,51 +43,58 @@ export default function CoursesCenterPage() {
         setUploadProgress(0);
 
         try {
-            const xhr = new XMLHttpRequest();
-            const data = new FormData();
-            data.append("file", formData.videoFile);
+            // Helper function to upload a file since /api/upload handles one at a time
+            const uploadFile = async (file, onProgress) => {
+                return new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    const data = new FormData();
+                    data.append("file", file);
 
-            xhr.upload.addEventListener("progress", (event) => {
-                if (event.lengthComputable) {
-                    const percent = Math.round((event.loaded / event.total) * 100);
-                    setUploadProgress(percent);
-                }
-            });
-
-            const uploadPromise = new Promise((resolve, reject) => {
-                xhr.onreadystatechange = () => {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            try {
-                                const response = JSON.parse(xhr.responseText);
-                                console.log("Server Response:", response);
-                                resolve(response);
-                            } catch (e) {
-                                console.error("JSON Parse Error:", xhr.responseText);
-                                reject(new Error("Invalid server response (JSON)"));
-                            }
-                        } else {
-                            console.error("Upload failed with status:", xhr.status, xhr.responseText);
-                            reject(new Error(`Upload failed with status: ${xhr.status}`));
+                    xhr.upload.addEventListener("progress", (event) => {
+                        if (event.lengthComputable && onProgress) {
+                            onProgress(event.loaded, event.total);
                         }
-                    }
-                };
-                xhr.onerror = () => reject(new Error("Network error during upload"));
-                xhr.open("POST", "/api/upload");
-                xhr.send(data);
+                    });
+
+                    xhr.onreadystatechange = () => {
+                        if (xhr.readyState === 4) {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                try {
+                                    resolve(JSON.parse(xhr.responseText));
+                                } catch (e) {
+                                    reject(new Error("Invalid server response"));
+                                }
+                            } else {
+                                reject(new Error(`Upload failed with status: ${xhr.status}`));
+                            }
+                        }
+                    };
+                    xhr.onerror = () => reject(new Error("Network error during upload"));
+                    xhr.open("POST", "/api/upload");
+                    xhr.send(data);
+                });
+            };
+
+            // 1. Upload Thumbnail first (usually smaller)
+            setUploadProgress(5); // Initial progress
+            const thumbResult = await uploadFile(formData.thumbnailFile);
+            if (!thumbResult.url) throw new Error("فشل رفع الصورة المصغرة");
+
+            // 2. Upload Video with progress tracking
+            const videoResult = await uploadFile(formData.videoFile, (loaded, total) => {
+                const percent = Math.round((loaded / total) * 100);
+                setUploadProgress(percent);
             });
 
-            const result = await uploadPromise;
-
-            if (!result.url || result.url === "#") {
+            if (!videoResult.url || videoResult.url === "#") {
                 throw new Error("Server did not return a valid video URL");
             }
 
             const newVideo = {
                 id: Date.now(),
                 title: formData.title,
-                videoUrl: result.url,
-                thumbnailUrl: "/Logo.jpeg",
+                videoUrl: videoResult.url,
+                thumbnailUrl: thumbResult.url,
                 notes: formData.notes,
                 date: formData.date
             };
