@@ -61,17 +61,30 @@ function AttendanceContent() {
                 // 2. Filter students specifically assigned to THIS teacher
                 const filtered = allUsers.filter(u => {
                     if (u.role !== "student") return false;
-                    
-                    const profile = JSON.parse(localStorage.getItem(`student_profile_${u.email}`) || "{}");
                     const tEmail = sessionData.email?.trim().toLowerCase();
-                    
-                    // Check legacy field
-                    if (profile.assignedTeacherEmail?.trim().toLowerCase() === tEmail) return true;
+                    const tName = sessionData.name?.trim().toLowerCase();
 
-                    // Check new subscriptions object
-                    const subscriptions = profile.subscriptions || {};
-                    return Object.values(subscriptions).some(sub => 
-                        sub.email?.trim().toLowerCase() === tEmail
+                    // 1. Check DB-synced subscriptions map first
+                    const dbSubscriptions = u.subscriptions || {};
+                    if (Object.keys(dbSubscriptions).length > 0) {
+                        const isSubscribed = Object.values(dbSubscriptions).some(sub => 
+                            sub.email?.trim().toLowerCase() === tEmail || 
+                            sub.name?.trim().toLowerCase() === tName
+                        );
+                        if (isSubscribed) return true;
+                    }
+
+                    // 2. Fallback to LocalStorage for legacy or unsynced data
+                    const profile = JSON.parse(localStorage.getItem(`student_profile_${u.email}`) || "{}");
+                    const sTeacherEmail = profile.assignedTeacherEmail?.trim().toLowerCase();
+                    const sTeacherName = profile.assignedTeacher?.trim().toLowerCase();
+                    
+                    if (sTeacherEmail === tEmail || (sTeacherName && sTeacherName === tName)) return true;
+
+                    const localSubscriptions = profile.subscriptions || {};
+                    return Object.values(localSubscriptions).some(sub => 
+                        sub.email?.trim().toLowerCase() === tEmail || 
+                        sub.name?.trim().toLowerCase() === tName
                     );
                 });
                 
