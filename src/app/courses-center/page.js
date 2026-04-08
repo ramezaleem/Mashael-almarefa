@@ -34,8 +34,8 @@ export default function CoursesCenterPage() {
 
     const handleUpload = async (e) => {
         e.preventDefault();
-        if (!formData.videoFile || !formData.title || !formData.thumbnailFile) {
-            Swal.fire("تنبيه", "يرجى استكمال البيانات المطلوبة (الفيديو والصورة المصغرة)", "warning");
+        if (!formData.title || !formData.thumbnailFile) {
+            Swal.fire("تنبيه", "يرجى استكمال البيانات المطلوبة (عنوان الدورة والصورة المصغرة)", "warning");
             return;
         }
 
@@ -80,20 +80,27 @@ export default function CoursesCenterPage() {
             const thumbResult = await uploadFile(formData.thumbnailFile);
             if (!thumbResult.url) throw new Error("فشل رفع الصورة المصغرة");
 
-            // 2. Upload Video with progress tracking
-            const videoResult = await uploadFile(formData.videoFile, (loaded, total) => {
-                const percent = Math.round((loaded / total) * 100);
-                setUploadProgress(percent);
-            });
+            // 2. Upload Video with progress tracking (ONLY if provided)
+            let videoUrl = "#";
+            if (formData.videoFile) {
+                const videoResult = await uploadFile(formData.videoFile, (loaded, total) => {
+                    const percent = Math.round((loaded / total) * 100);
+                    setUploadProgress(percent);
+                });
 
-            if (!videoResult.url || videoResult.url === "#") {
-                throw new Error("Server did not return a valid video URL");
+                if (!videoResult.url || videoResult.url === "#") {
+                    throw new Error("فشل الحصول على رابط صالح للفيديو المرفوع");
+                }
+                videoUrl = videoResult.url;
+            } else {
+                // If no video, set progress to 100 to show completion
+                setUploadProgress(100);
             }
 
             const newVideo = {
                 id: Date.now(),
                 title: formData.title,
-                videoUrl: videoResult.url,
+                videoUrl: videoUrl,
                 thumbnailUrl: thumbResult.url,
                 notes: formData.notes,
                 date: formData.date
@@ -109,7 +116,7 @@ export default function CoursesCenterPage() {
                 localStorage.setItem("platform_courses", JSON.stringify(updatedCourses));
             }
 
-            Swal.fire("تم بنجاح", "تم رفع الفيديو والملاحظات بنجاح", "success");
+            Swal.fire("تم بنجاح", formData.videoFile ? "تم رفع الفيديو والملاحظات بنجاح" : "تم حفظ بيانات الدورة والصورة المصغرة بنجاح", "success");
             setFormData({
                 title: "",
                 date: new Date().toISOString().split('T')[0],
@@ -184,7 +191,7 @@ export default function CoursesCenterPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2">
                                     <label className="block text-sm font-bold text-[#1a2e2a]">
-                                        رفع فيديو الدورة <span className="text-red-500">*</span>
+                                        رفع فيديو الدورة <span className="text-slate-400 font-normal">(اختياري)</span>
                                     </label>
                                     <div className="relative">
                                         <input
