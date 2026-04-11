@@ -112,6 +112,7 @@ export default function AdminTeacherSessionsPage() {
           image: u.image || "",
           status: u.status || "نشط",
           password: u.password || "",
+          phone: u.phone || "",
         };
       });
 
@@ -347,7 +348,13 @@ export default function AdminTeacherSessionsPage() {
                             studentName: l.studentName || l.student_name || l.student_email?.split('@')[0] || "طالب"
                           }));
 
-                          setHistoryModal({ name: teacher.name, email: teacher.email, password: teacher.password, logs: logsWithNames });
+                          setHistoryModal({ 
+                            name: teacher.name, 
+                            email: teacher.email, 
+                            password: teacher.password, 
+                            phone: teacher.phone,
+                            logs: logsWithNames 
+                          });
                         }}
                         className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 px-4 py-2 hover:bg-emerald-500 transition-all text-xs font-bold text-slate-400 hover:text-white"
                       >
@@ -373,6 +380,7 @@ export default function AdminTeacherSessionsPage() {
                   <span>المعلم: {historyModal.name}</span>
                   <span>البريد: {historyModal.email}</span>
                   <span className="bg-white/20 px-1.5 rounded">كلمة السر: {historyModal.password || "—"}</span>
+                  <span className="bg-emerald-500/30 px-1.5 rounded">الهاتف: {historyModal.phone || "—"}</span>
                 </div>
               </div>
               <button

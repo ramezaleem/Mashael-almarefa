@@ -170,7 +170,7 @@ export const saveUser = async (user) => {
                 guardian_name: user.guardian || "",
                 guardian_phone: user.guardianPhone || "",
                 department: user.department || user.course || "",
-                registered_subjects: user.subjects || [],
+                registered_subjects: { list: user.subjects || [], subs: {} },
                 country: user.country || ""
             }]);
 
@@ -265,7 +265,8 @@ export const updateUser = async (updatedUser) => {
                 specialization: updatedUser.course,
                 bio: updatedUser.bio,
                 is_on_leave: updatedUser.status === "إجازة",
-                rating: updatedUser.rating
+                rating: updatedUser.rating,
+                rate_per_session: updatedUser.rate_per_session || 0
             }).eq('user_id', updatedUser.id);
         } else if (updatedUser.role === 'student') {
             // Include subscriptions in the JSONB field for syncing

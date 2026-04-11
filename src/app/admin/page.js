@@ -3,8 +3,17 @@
 import { useState, useEffect } from "react";
 import { getLocalUsers, deleteUser, updateUser, getPlatformCourses, updatePlatformCourse, deletePlatformCourse, addPlatformCourse, getAssignedCourseTitles, saveCourseAssignments, getPlatformVideos } from "@/utils/local-db";
 
-// Mock data
-// Dynamic courses will be loaded from localStorage
+const CURRICULA_SUBJECTS = [
+    { name: "اللغة العربية", icon: "📚" },
+    { name: "اللغة الإنجليزية", icon: "🇬🇧" },
+    { name: "الرياضيات", icon: "📐" },
+    { name: "العلوم", icon: "🧪" },
+    { name: "الدراسات الاجتماعية", icon: "🌍" },
+    { name: "اللغة الفرنسية", icon: "🇫🇷" },
+    { name: "اللغة الألمانية", icon: "🇩🇪" },
+    { name: "التربية الإسلامية", icon: "🕌" },
+];
+
 export default function AdminUsersPage() {
     const [allCourses, setAllCourses] = useState([]);
     const [users, setUsers] = useState([]);
@@ -93,21 +102,39 @@ export default function AdminUsersPage() {
     const openEditModal = (user) => {
         setEditingUser(user);
         let rating = user.rating || "5.0";
-        const deptNames = (user.course || user.department || "").split("، ").map(s => s.trim());
+        
+        // Robustly extract department names by removing anything in parentheses first
+        const rawDeptStr = user.course || user.department || "";
+        const cleanDeptStr = rawDeptStr.split("(")[0].trim();
+        const deptNames = cleanDeptStr.split(/[،,]/).map(s => s.trim()).filter(Boolean);
+
         setEditForm({ 
             name: user.name, 
             email: user.email, 
             password: user.password || "",
+            phone: user.phone || "",
+            guardian: user.guardian || "",
+            guardianPhone: user.guardianPhone || "",
             course: user.course || user.department, 
             rating,
-            selectedDepartments: deptNames
+            bio: user.bio || "",
+            rate_per_session: user.rate_per_session || 0,
+            selectedDepartments: deptNames,
+            selectedSubjects: user.subjects || []
         });
     };
 
     const handleSaveEdit = async (e) => {
         e.preventDefault();
         const updatedData = { ...editingUser, ...editForm };
+        updatedData.subjects = editForm.selectedSubjects;
         updatedData.course = editForm.selectedDepartments.join("، ");
+        
+        // Add subjects to course title if in Curricula dept
+        if (editForm.selectedDepartments.includes("المناهج الدراسية") && editForm.selectedSubjects.length > 0) {
+            updatedData.course = updatedData.course + ` (${editForm.selectedSubjects.join("، ")})`;
+        }
+        
         updatedData.department = updatedData.course;
         
         await updateUser(updatedData);
@@ -122,7 +149,21 @@ export default function AdminUsersPage() {
             const updated = current.includes(deptName)
                 ? (current.length > 1 ? current.filter(d => d !== deptName) : current)
                 : [...current, deptName];
-            return { ...prev, selectedDepartments: updated };
+            
+            // If curricula is removed, clear subjects too
+            const extra = (!updated.includes("المناهج الدراسية")) ? { selectedSubjects: [] } : {};
+            
+            return { ...prev, selectedDepartments: updated, ...extra };
+        });
+    };
+
+    const toggleEditSubject = (subjectName) => {
+        setEditForm(prev => {
+            const current = prev.selectedSubjects || [];
+            const updated = current.includes(subjectName)
+                ? current.filter(s => s !== subjectName)
+                : [...current, subjectName];
+            return { ...prev, selectedSubjects: updated };
         });
     };
 
@@ -346,6 +387,7 @@ export default function AdminUsersPage() {
                             <thead>
                                 <tr className="border-b border-emerald-100 text-emerald-900">
                                     <th className="py-4 pl-4 font-bold">بيانات العضو</th>
+                                    <th className="py-4 pl-4 font-bold">بيانات التواصل والحساب</th>
                                     <th className="py-4 pl-4 font-bold">رقم العضو</th>
                                     <th className="py-4 pl-4 font-bold">القسم / المسار</th>
                                     {activeTab === "student" ? (
@@ -359,7 +401,7 @@ export default function AdminUsersPage() {
                             <tbody className="divide-y divide-emerald-50/50">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan="5" className="py-12 text-center">
+                                        <td colSpan="6" className="py-12 text-center">
                                             <div className="flex flex-col items-center gap-3">
                                                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
                                                 <p className="text-sm font-bold text-emerald-800 animate-pulse">جاري تحميل البيانات...</p>
@@ -386,21 +428,29 @@ export default function AdminUsersPage() {
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-bold text-emerald-950">{user.name}</span>
-                                                            <div className="flex flex-col gap-0.5 mt-0.5">
-                                                                <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                                                                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                                    </svg>
-                                                                    {user.email}
-                                                                </span>
-                                                                <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 w-fit px-1.5 rounded">
-                                                                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                                    </svg>
-                                                                    {user.password || "—"}
-                                                                </span>
-                                                            </div>
                                                         </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 pl-4">
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                                                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                            </svg>
+                                                            {user.email}
+                                                        </span>
+                                                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 w-fit px-2 py-0.5 rounded">
+                                                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                            </svg>
+                                                            {user.password || "—"}
+                                                        </span>
+                                                        <span className="text-[11px] text-slate-600 flex items-center gap-1 font-bold">
+                                                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                            </svg>
+                                                            {user.phone || "بدون هاتف"}
+                                                        </span>
                                                     </div>
                                                 </td>
                                                 <td className="py-4 pl-4">
@@ -466,7 +516,7 @@ export default function AdminUsersPage() {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="5" className="py-8 text-center text-slate-500">
+                                        <td colSpan="6" className="py-8 text-center text-slate-500">
                                             لا يوجد أعضاء في هذا القسم حاليًا.
                                         </td>
                                     </tr>
@@ -480,100 +530,213 @@ export default function AdminUsersPage() {
             {/* Edit Modal (Overlay) */}
             {editingUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-emerald-950/40 p-4 backdrop-blur-sm animate-in fade-in">
-                    <div className="modern-card w-full max-w-md rounded-3xl border border-white p-6 shadow-2xl bg-white sm:p-8 animate-in zoom-in-95">
-                        <h2 className="mb-6 text-2xl font-black text-emerald-950">تعديل بيانات العضو</h2>
-                        <form onSubmit={handleSaveEdit} className="space-y-4">
-                            <div>
-                                <label className="mb-1.5 block text-sm font-bold text-emerald-900">الاسم</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={editForm.name}
-                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                    className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-1.5 block text-sm font-bold text-emerald-900">البريد الإلكتروني</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={editForm.email}
-                                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                    className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-1.5 block text-sm font-bold text-emerald-900 text-right">كلمة السر</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={editForm.password}
-                                    onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                                    className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40 font-mono text-sm"
-                                    dir="ltr"
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-1.5 block text-sm font-bold text-emerald-900 border-r-4 border-emerald-500 pr-3">أقسام العضو (يمكن اختيار أكثر من واحد)</label>
-                                <div className="grid grid-cols-1 gap-2 mt-2">
-                                    {["ركن القرآن الكريم", "اللغة العربية لغير الناطقين", "المناهج الدراسية"].map((dept) => (
-                                        <button
-                                            key={dept}
-                                            type="button"
-                                            onClick={() => toggleEditDept(dept)}
-                                            className={`flex items-center justify-between rounded-xl border-2 p-3 text-right text-xs font-bold transition-all ${editForm.selectedDepartments.includes(dept)
-                                                ? "border-emerald-500 bg-emerald-50 text-emerald-950"
-                                                : "border-emerald-50 bg-white text-slate-500 hover:border-emerald-200"
-                                            }`}
-                                        >
-                                            <span>{dept}</span>
-                                            {editForm.selectedDepartments.includes(dept) && (
-                                                <svg className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            )}
-                                        </button>
-                                    ))}
+                    <div className="modern-card flex flex-col w-full max-w-2xl max-h-[90vh] rounded-3xl border border-white bg-white shadow-2xl animate-in zoom-in-95 overflow-hidden">
+                        <div className="p-4 sm:p-5 border-b border-emerald-50 bg-emerald-50/10 shrink-0">
+                            <div className="flex items-center gap-2.5">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
                                 </div>
-                            </div>                            {editingUser.role === "teacher" && (
-                                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100/50">
-                                    <label className="mb-2 block text-xs font-bold text-amber-800 uppercase tracking-wider">تقييم المعلم</label>
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex flex-col flex-1">
-                                            <input 
-                                                type="range" 
-                                                min="1" max="5" step="0.1"
-                                                value={editForm.rating}
-                                                onChange={(e) => setEditForm({ ...editForm, rating: e.target.value })}
-                                                className="w-full accent-amber-500 cursor-pointer"
-                                            />
-                                            <div className="flex justify-between mt-1 text-[10px] font-bold text-amber-600/60">
-                                                <span>1.0</span>
-                                                <span>5.0</span>
+                                <div>
+                                    <h2 className="text-lg font-black text-emerald-950 leading-tight">تعديل بيانات العضو</h2>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Quick Edit • Update Information</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form onSubmit={handleSaveEdit} className="flex flex-col flex-1 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 pt-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-extrabold text-slate-500 pr-1">الاسم الكامل</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={editForm.name}
+                                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/5"
+                                            placeholder="الاسم الكامل"
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-extrabold text-slate-500 pr-1">البريد الإلكتروني</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={editForm.email}
+                                            onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/5"
+                                            placeholder="example@mail.com"
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-extrabold text-slate-500 pr-1">كلمة السر</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={editForm.password}
+                                            onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/5 font-mono"
+                                            dir="ltr"
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-extrabold text-slate-500 pr-1">رقم الهاتف</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={editForm.phone}
+                                            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/5 font-mono"
+                                            dir="ltr"
+                                        />
+                                    </div>
+
+                                    {editingUser.role === "student" && (
+                                        <>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-extrabold text-amber-600/80 pr-1">اسم ولي الأمر</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.guardian}
+                                                    onChange={(e) => setEditForm({ ...editForm, guardian: e.target.value })}
+                                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-amber-400 outline-none shadow-sm shadow-amber-500/5"
+                                                    placeholder="الاسم الكامل لولي الأمر"
+                                                />
                                             </div>
-                                        </div>
-                                        <div className="h-14 w-14 shrink-0 rounded-2xl bg-white border-2 border-amber-200 flex flex-col items-center justify-center font-black text-amber-600 shadow-sm transition-transform hover:scale-110">
-                                            <span className="text-sm">{editForm.rating}</span>
-                                            <span className="text-xs leading-none">⭐</span>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-extrabold text-amber-600/80 pr-1">هاتف ولي الأمر</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.guardianPhone}
+                                                    onChange={(e) => setEditForm({ ...editForm, guardianPhone: e.target.value })}
+                                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-amber-400 outline-none font-mono shadow-sm shadow-amber-500/5"
+                                                    dir="ltr"
+                                                    placeholder="010XXXXXXXX"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <div className="sm:col-span-2 mt-1">
+                                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                            {["ركن القرآن الكريم", "اللغة العربية لغير الناطقين", "المناهج الدراسية"].map((dept) => (
+                                                <button
+                                                    key={dept}
+                                                    type="button"
+                                                    onClick={() => toggleEditDept(dept)}
+                                                    className={`group relative flex items-center justify-between rounded-xl border-2 p-3 transition-all ${editForm.selectedDepartments.includes(dept)
+                                                        ? "border-emerald-500 bg-emerald-50/50 text-emerald-950 shadow-sm"
+                                                        : "border-slate-50 bg-slate-50/10 text-slate-400 hover:border-emerald-100 hover:text-slate-600"
+                                                    }`}
+                                                >
+                                                    <span className="text-[10px] font-black">{dept}</span>
+                                                    {editForm.selectedDepartments.includes(dept) && (
+                                                        <div className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-white">
+                                                            <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
+
+                                    {editForm.selectedDepartments.includes("المناهج الدراسية") && (
+                                        <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200/50">
+                                            <div className="flex items-center gap-2 mb-2.5">
+                                                <span className="h-1 w-4 bg-emerald-400 rounded-full"></span>
+                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">المواد الدراسية</p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                                                {CURRICULA_SUBJECTS.map((sub) => (
+                                                    <button
+                                                        key={sub.name}
+                                                        type="button"
+                                                        onClick={() => toggleEditSubject(sub.name)}
+                                                        className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-all transform active:scale-95 ${editForm.selectedSubjects.includes(sub.name)
+                                                            ? "border-emerald-500 bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-500/10"
+                                                            : "border-slate-200 bg-white text-slate-400 hover:border-emerald-200 hover:text-slate-600"
+                                                        }`}
+                                                    >
+                                                        <span className="text-xs">{sub.icon}</span>
+                                                        <span className="text-[9px] font-bold truncate">{sub.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {editingUser.role === "teacher" && (
+                                        <>
+                                            <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-extrabold text-slate-500 pr-1">سعر الحصة (جنيه/دولار)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={editForm.rate_per_session}
+                                                        onChange={(e) => setEditForm({ ...editForm, rate_per_session: e.target.value })}
+                                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 outline-none"
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-amber-800 uppercase tracking-widest flex justify-between">
+                                                        <span>تقييم المعلم</span>
+                                                        <span>{editForm.rating} ★</span>
+                                                    </label>
+                                                    <div className="flex items-center h-9">
+                                                        <input 
+                                                            type="range" 
+                                                            min="1" max="5" step="0.1"
+                                                            value={editForm.rating}
+                                                            onChange={(e) => setEditForm({ ...editForm, rating: e.target.value })}
+                                                            className="w-full h-1 bg-amber-100 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="sm:col-span-2 space-y-1">
+                                                <label className="text-[10px] font-extrabold text-slate-500 pr-1">النبذة التعريفية (Bio)</label>
+                                                <textarea
+                                                    rows="2"
+                                                    value={editForm.bio}
+                                                    onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 outline-none resize-none custom-scrollbar"
+                                                    placeholder="اكتب نبذة قصيرة عن المعلم..."
+                                                ></textarea>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
-                            )}
-                            <div className="mt-6 flex gap-3 pt-2">
-                                <button
-                                    type="submit"
-                                    className="glow-button flex-1 rounded-xl bg-gradient-to-l from-emerald-500 to-emerald-600 py-3 text-sm font-bold text-white transition-all hover:from-emerald-400 hover:to-emerald-500 shadow-lg shadow-emerald-500/20"
-                                >
-                                    حفظ التعديلات
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setEditingUser(null)}
-                                    className="flex-1 rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-200"
-                                >
-                                    إلغاء
-                                </button>
+                            </div>
+
+                            <div className="p-4 sm:p-5 bg-slate-50/50 border-t border-emerald-50 shrink-0 mt-auto">
+                                <div className="flex gap-2.5">
+                                    <button
+                                        type="submit"
+                                        className="relative overflow-hidden group flex-[2] rounded-xl bg-emerald-600 py-3 text-xs font-black text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 hover:-translate-y-0.5"
+                                    >
+                                        <div className="relative z-10 flex items-center justify-center gap-2">
+                                            <span>تأكيد وحفظ التعديلات</span>
+                                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingUser(null)}
+                                        className="flex-1 rounded-xl bg-white border border-slate-200 py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                    >
+                                        إلغاء
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
