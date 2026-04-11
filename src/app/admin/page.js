@@ -97,6 +97,7 @@ export default function AdminUsersPage() {
         setEditForm({ 
             name: user.name, 
             email: user.email, 
+            password: user.password || "",
             course: user.course || user.department, 
             rating,
             selectedDepartments: deptNames
@@ -385,7 +386,20 @@ export default function AdminUsersPage() {
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <span className="font-bold text-emerald-950">{user.name}</span>
-                                                            <span className="text-[10px] text-slate-500">{user.email}</span>
+                                                            <div className="flex flex-col gap-0.5 mt-0.5">
+                                                                <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                                                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                                    </svg>
+                                                                    {user.email}
+                                                                </span>
+                                                                <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 w-fit px-1.5 rounded">
+                                                                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                                    </svg>
+                                                                    {user.password || "—"}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -487,6 +501,17 @@ export default function AdminUsersPage() {
                                     value={editForm.email}
                                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                                     className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40"
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1.5 block text-sm font-bold text-emerald-900 text-right">كلمة السر</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={editForm.password}
+                                    onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                    className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-4 py-3 text-emerald-950 outline-none transition focus:border-emerald-400 focus:ring-1 focus:ring-emerald-300/40 font-mono text-sm"
+                                    dir="ltr"
                                 />
                             </div>
                             <div>
