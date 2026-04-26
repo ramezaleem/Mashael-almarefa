@@ -239,7 +239,9 @@ function AttendanceContent() {
                                         <option value="30 دقيقة">30 دقيقة</option>
                                         <option value="45 دقيقة">45 دقيقة</option>
                                         <option value="60 دقيقة">ساعة</option>
+                                        <option value="75 دقيقة">ساعة وربع</option>
                                         <option value="90 دقيقة">ساعة ونصف</option>
+                                        <option value="105 دقيقة">ساعتين إلا ربع</option>
                                         <option value="120 دقيقة">ساعتان</option>
                                     </select>
                                 </div>

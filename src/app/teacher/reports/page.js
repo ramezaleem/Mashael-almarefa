@@ -78,6 +78,27 @@ export default function TeacherReportsPage() {
         setFilteredReports(result);
     }, [searchTerm, dateFilter, reports]);
 
+    const formatDuration = (duration) => {
+        const durationDisplayMap = {
+            "60": "ساعة",
+            "60 دقيقة": "ساعة",
+            "75": "ساعة وربع",
+            "75 دقيقة": "ساعة وربع",
+            "90": "ساعة ونصف",
+            "90 دقيقة": "ساعة ونصف",
+            "105": "ساعتين إلا ربع",
+            "105 دقيقة": "ساعتين إلا ربع",
+            "120": "ساعتان",
+            "120 دقيقة": "ساعتان",
+            "30": "30 دقيقة",
+            "30 دقيقة": "30 دقيقة",
+            "45": "45 دقيقة",
+            "45 دقيقة": "45 دقيقة"
+        };
+        const cleanKey = String(duration).trim();
+        return durationDisplayMap[cleanKey] || `${duration} دقيقة`;
+    };
+
     const showFullReport = (report) => {
         const notesArray = report.notes.split('|').map(n => n.trim());
         
@@ -121,7 +142,7 @@ export default function TeacherReportsPage() {
 
                 <div class="flex items-center justify-center gap-2 pt-2">
                     <span class="px-5 py-2 bg-emerald-100 text-emerald-700 rounded-full text-xs font-black border border-emerald-200/50">
-                        مدة الحصة: ${report.duration} دقيقة
+                        مدة الحصة: ${formatDuration(report.duration)}
                     </span>
                     <span class="px-5 py-2 bg-emerald-500 text-white rounded-full text-xs font-black shadow-lg shadow-emerald-500/20">
                         سجل معتمد
@@ -282,7 +303,7 @@ export default function TeacherReportsPage() {
                                             </td>
                                             <td className="px-6 py-6 text-center whitespace-nowrap">
                                                 <span className="px-5 py-2 bg-emerald-100/50 text-emerald-700 rounded-xl text-sm font-black border border-emerald-200/30 shadow-sm inline-block">
-                                                    {report.duration} دقيقة
+                                                    {formatDuration(report.duration)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-6 max-w-[300px]">
