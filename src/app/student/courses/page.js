@@ -12,6 +12,14 @@ export default function StudentCoursesPage() {
     const [loading, setLoading] = useState(true);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [videoError, setVideoError] = useState(false);
+    const [expandedDescriptions, setExpandedDescriptions] = useState({});
+
+    const toggleDescription = (id) => {
+        setExpandedDescriptions(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+    };
 
     useEffect(() => {
         const loadData = async () => {
@@ -164,9 +172,32 @@ export default function StudentCoursesPage() {
                             </div>
                             <div className="flex flex-1 flex-col p-8">
                                 <h3 className="mb-3 text-xl font-black text-emerald-950 group-hover:text-emerald-600 transition-colors">{course.title}</h3>
-                                <p className="mb-8 text-sm leading-relaxed text-slate-500 font-medium line-clamp-3">
-                                    {course.description}
-                                </p>
+                                <div className="relative mb-6">
+                                    <p className={`text-sm leading-relaxed text-slate-500 font-medium transition-all duration-300 ${expandedDescriptions[course.id] ? "" : "line-clamp-2"}`}>
+                                        {course.description}
+                                    </p>
+                                    {course.description.length > 80 && (
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleDescription(course.id);
+                                            }}
+                                            className="mt-2 text-emerald-600 text-xs font-bold hover:text-emerald-700 transition-colors flex items-center gap-1"
+                                        >
+                                            {expandedDescriptions[course.id] ? (
+                                                <>
+                                                    <span>عرض أقل</span>
+                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span>عرض المزيد</span>
+                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="mt-auto">
                                     {(!user || user?.role === "student" || course.isAssigned) && (
                                         <button
